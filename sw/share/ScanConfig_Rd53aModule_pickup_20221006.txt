@@ -1,0 +1,46 @@
+0 ScanConfig:Rd53aModule_pickup_20221006
+-21.000  22.000 Jig
+ 21.000  22.000 Jig
+ 20.000 -22.000 Jig
+-18.760 -22.000 Jig
+ 0.000  -21.000 Jig
+ 3.000    0.460 Connector
+ 0.000    0.460 Connector
+-3.000    0.460 Connector
+ 0.600   13.200 HVCapacitor
+-0.000   13.200 HVCapacitor
+-0.600   13.200 HVCapacitor
+-12.464   7.776 Pickup1
+-12.232  12.524 Pickup1
+-7.596   12.184 Pickup1
+-7.212    8.424 Pickup1
+-9.692   10.272 Pickup1
+-12.380 -12.432 Pickup2
+-12.160  -7.656 Pickup2
+-7.872   -7.652 Pickup2
+-7.036  -11.644 Pickup2
+-9.832   -9.972 Pickup2
+  7.292  12.020 Pickup3
+  7.216  -8.420 Pickup3
+ 12.460  -7.876 Pickup3
+ 12.716 -12.020 Pickup3
+ 10.452  -9.896 Pickup3
+  7.642   7.760 Pickup4
+  7.580  12.284 Pickup4
+ 12.448  12.180 Pickup4
+ 12.692   8.408 Pickup4
+ 10.216  10.320 Pickup4
+-19.300  18.000 FlexLSide
+-19.300  12.000 FlexLSide
+-19.300   6.000 FlexLSide
+-19.300  -0.000 FlexLSide
+-19.300  -6.000 FlexLSide
+-19.300 -12.000 FlexLSide
+-19.300 -18.000 FlexLSide
+ 19.500 -18.000 FlexRSide
+ 19.500 -12.000 FlexRSide
+ 19.500  -6.000 FlexRSide
+ 19.500  -0.000 FlexRSide
+ 19.500   6.000 FlexRSide
+ 19.500  12.000 FlexRSide
+ 19.500  18.000 FlexRSide

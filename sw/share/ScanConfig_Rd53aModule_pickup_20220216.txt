@@ -1,0 +1,43 @@
+-20.000  21.500 Jig
+-20.000 -22.000 Jig
+-22.500   0.000 Jig
+  0.000  21.500 Jig
+  0.000 -22.500 Jig
+ 20.000 -22.000 Jig
+ 20.000  21.500 Jig
+ 22.500   0.000 Jig
+-13.600  15.456 Flex
+-14.600 -15.456 Flex
+ 12.600 -16.456 Flex
+ 12.600  16.456 Flex
+ -3.996   0.244 Connector
+ -0.900   0.116 Connector
+ -4.560   0.780 Connector
+ -0.452  13.604 Connector
+  0.700  13.704 Connector
+-17.536  17.796 HVCapacitor
+-17.216  12.052 HVCapacitor
+-17.708   2.352 HVCapacitor
+-17.580  -2.352 HVCapacitor
+-17.304   8.196 HVCapacitor
+-17.636 -17.832 HVCapacitor
+-12.382 -12.432 Pickup1
+-12.360  -7.456 Pickup1
+ -7.072  -7.451 Pickup1
+ -6.437 -11.844 Pickup1
+ -9.834  -9.971 Pickup1
+-12.466   7.776 Pickup2
+-12.430  12.723 Pickup2
+ -6.997  12.784 Pickup2
+ -7.014   7.626 Pickup2
+ -9.693  10.273 Pickup2
+  7.643   7.758 Pickup3
+  7.580  12.486 Pickup3
+ 13.046  12.779 Pickup3
+ 13.091   7.808 Pickup3
+ 10.215  10.322 Pickup3
+  7.294 -12.019 Pickup4
+  7.217  -8.020 Pickup4
+ 13.060  -7.475 Pickup4
+ 13.117 -12.419 Pickup4
+ 10.454  -9.897 Pickup4

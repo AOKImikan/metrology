@@ -1,0 +1,46 @@
+ScanConfig:ITkPixV1.0Flex_v3.2_v1.0 0
+#
+-20.2     20.2    Jig
+-20.2    -20.2    Jig
+ 20.2    -20.2    Jig
+ 20.2     20.2    JigX
+ 28.5     27.2    HoleTL
+ 25.2     27.2    HoleTL
+ 26.9     29.0    HoleTL
+ 26.9     25.6    HoleTL
+-25.3    -25.4    HoleBR
+-28.4    -28.3    HoleBR
+-26.0    -27.9    HoleBR
+-28.3    -25.6    HoleBR
+ 10.516  -11.192  Pickup1
+ 8.984     9.5    Pickup2
+-10.132    9.5    Pickup3
+ -9.716  -8.792   Pickup4
+-18.7    -18.9    FmarkTL
+-18.8     19.7    FmarkBL
+ 18.8     19.6    FmarkBR
+ 18.8    -18.9    FmarkTR
+  0.0      0.0    HVCapacitor
+  0.0      0.0    HVCapacitor
+  0.0      0.0    HVCapacitor
+  0.0      0.0    HVCapacitor
+  0.0      0.0    HVCapacitor
+  0.0      0.0    HVConnector
+  0.0      0.0    HVConnector
+  0.0      0.0    HVConnector
+ 19.4     19.5    FlexR
+ 19.4      5.1    FlexR
+ 19.4     -9.9    FlexR
+ 19.4    -18.7    FlexR
+ 18.5    -19.6    FlexB
+ 10.5    -19.6    FlexB
+-10.5    -19.6    FlexB
+-18.5    -19.6    FlexB
+-19.7    -18.7    FlexL
+-19.7    -10.7    FlexL
+-19.7     10.7    FlexL
+-19.7     18.7    FlexL
+-18.8     20.3    FlexT
+-10.8     20.3    FlexT
+ 10.8     20.3    FlexT
+ 18.3     20.3    FlexT

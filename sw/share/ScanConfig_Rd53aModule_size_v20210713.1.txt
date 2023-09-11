@@ -1,0 +1,31 @@
+ScanConfig:Rd53aModule_size_v20210713.1 0 
+-19.70 19.90   FlexB
+-20.00 20.10   FlexB,FlexL
+19.70 19.90    FlexB
+20.00 20.10    FlexB,FlexR
+-19.70 -19.90  FlexT
+-20.00 -20.10  FlexT,FlexL
+19.70 -19.90   FlexR
+20.00 -20.10   FlexT,FlexR
+#
+-21.10 0.00	AsicL
+-21.10 -19.90 	AsicL,AsicT
+-21.10 -10.00	AsicL
+-21.10 10.00	AsicL
+-21.10 20.00	AsicL,AsicB
+21.00 0		AsicR
+21.00 -19.90	AsicR,AsicT
+21.00 -10.00	AsicR
+21.00 10.00	AsicR
+21.00 20.00	AsicR,AsicB
+#
+0 20.40		SensorB
+19.00 20.40	SensorB
+19.50 20.40	SensorB,SensorR
+-19.00 20.40	SensorB
+-19.50 20.40	SensorB,SensorL
+0 -20.40	SensorT
+19.00 -20.40	SensorT
+19.50 -20.40	SensorT,SensorR
+-19.00 -20.40	SensorT
+-19.50 -20.40	SensorT,SensorL

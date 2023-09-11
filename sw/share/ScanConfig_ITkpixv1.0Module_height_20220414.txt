@@ -1,0 +1,54 @@
+#ScanConfig:ITkpixv1.0Module_size_20220414
+-22.000  20.000 Jig 
+-22.000  -1.500 Jig
+-22.000 -21.000 Jig
+  0.000 -21.000 Jig
+ 22.000 -21.000 Jig
+ 22.000   1.500 Jig
+ 22.000  21.000 Jig
+  0.000  23.000 Jig
+-20.980  19.900 Asic
+-21.080   5.000 Asic
+-21.080  -5.000 Asic
+-21.080 -19.500 Asic
+ 20.880 -20.000 Asic
+ 20.880  -5.000 Asic
+ 20.880   5.000 Asic
+ 20.880  20.000 Asic
+-19.700 -20.400 Sensor
+-12.000 -20.400 Sensor
+ -5.000 -20.400 Sensor
+  5.000 -20.400 Sensor
+ 12.000 -20.400 Sensor
+ 19.200 -20.300 Sensor
+ 12.000  20.300 Sensor
+  2.500  20.300 Sensor
+ -2.500  20.400 Sensor
+-12.000  20.400 Sensor
+-19.500  20.400 Sensor
+  3.000  -3.100 DataConnector
+  0.000  -3.100 DataConnector
+ -3.000  -3.100 DataConnector
+ -9.900 -18.900 HVCapacitor
+ -9.400 -18.900 HVCapacitor
+ -8.400 -18.900 HVCapacitor
+ -10.964  8.276 Pickup1
+ -12.032 11.724 Pickup1
+  -8.396 11.784 Pickup1
+  -9.012  8.224 Pickup1
+  -9.692  11.472 Pickup1
+ -11.680 -11.632 Pickup2
+ -11.360  -7.856 Pickup2
+  -8.272  -8.456 Pickup2
+  -8.372  -8.956 Pickup2
+  -8.732 -11.072 Pickup2
+   8.492 -11.820 Pickup3
+  7.916   -9.020 Pickup3
+ 11.260   -8.076 Pickup3
+ 11.216  -11.920 Pickup3
+ 10.152   -9.896 Pickup3
+  8.044    9.460 Pickup4
+  7.644    9.660 Pickup4
+ 11.380   11.984 Pickup4
+ 12.380   10.784 Pickup4
+ 10.480   10.484 Pickup4

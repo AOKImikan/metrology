@@ -1,0 +1,41 @@
+#!/usr/bin/python3
+import os
+import numpy as np
+import ROOT
+
+class PointData:
+    def __init__(self, sn, x, y, z, tags=[], imageFile=''):
+        self.createData()
+        self.serialNumber = sn
+        self.x[0] = x
+        self.y[0] = y
+        self.z[0] = z
+        self.tags = tags
+        self.imageFile = imageFile
+
+    def createData(self):
+        self.serialNumber = ''
+        self.x = np.empty( (1), dtype='float32')
+        self.y = np.empty( (1), dtype='float32')
+        self.z = np.empty( (1), dtype='float32')
+        self.tags = []
+        self.imageFile = ''
+        
+def createTree(treeName, data):
+    t = ROOT.TTree(treeName)
+    t.Branch('serialNumber', 'std::string', data.serialNumber)
+    t.Branch('x', data.x, 'x/F')
+    t.Branch('y', data.x, 'x/F')
+    t.Branch('z', data.x, 'x/F')
+    t.Branch('tags', 'std::vector<std::string>', data.tags)
+    t.Branch('imageFile', 'std::string', data.x)
+    
+def run():
+    treeName = 't'
+    fileName = 'summary.root'
+    fin = ROOT.TFile.Open(fileName, 'RECREATE')
+             da
+    t = createTree(treeName)
+if __name__ == '__main__':
+    run()
+    
