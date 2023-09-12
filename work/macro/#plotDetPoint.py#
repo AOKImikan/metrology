@@ -9,33 +9,6 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-def extractLargeZ(scanData,tag):
-    #group scandata dataframe by tags
-    pltdata = scanData.groupby(['tags'])
-    #extract by specified tag
-    extractData = pltdata.get_group((tag[1]))
-
-    #get standard deviation
-    std = extractData['scan_z'].std()
-    mean = extractData['scan_z'].mean()
-    print('std = ',std)
-
-    #define return list
-    NGSN = []
-    
-    #extractData 1 row roop
-    i = 0
-    while i<len(extractData):
-        #extract 1 row (dataframe -> series)
-        rowi = extractData.iloc[i]
-        # z > standard deviation?
-        if abs(rowi['scan_z']-mean) > 0.03:
-            #print NG serial number
-            print('NG SN ', rowi['image_path'])
-            NGSN.append(rowi['serial_number'])
-        i += 1
-    return NGSN
-
 def plotPoint(scanData, anaData, tagName):    
     #group scandata dataframe by tags
     grouptag = scanData.groupby(['tags'])
@@ -123,7 +96,7 @@ def HistStd(scanData):
     #get std x,y,z
     stdDF = grouptag.std()
     #get std z
-    stdlist = stdDF['scan_z']
+    stdlist = stdDF['z']
 
     #define matplotlib figure
     fig = plt.figure(figsize=(10,9))
@@ -143,32 +116,48 @@ def extractStd(scanData, threshold):
     #get std x,y,z
     stdDF = grouptag.std()
 
-    largeStd = stdDF[stdDF.scan_z > threshold]
+    largeStd = stdDF[stdDF.z > threshold]
     print(largeStd)  
-        
-def run(scanData, anaData, args):
-    #####extractMargin(scanData, anaData)
-    #command argment is true
-    if len(args)==3:
-        com = args[2]
-        if com=='exStd':
-            #show tag and scan xyz if large std
-            extractStd(scanData, 0.03)
-        if com=='histStd':
-            #std histgram
-            HistStd(scanData)
-    #none command
-    if len(args)==2:
-        #plot scan point with image center
-        plotPoint(scanData, anaData, args)
+    
+def extractLargeZ(scanData,tag):
+    #group scandata dataframe by tags
+    pltdata = scanData.groupby(['tags'])
+    #extract by specified tag
+    extractData = pltdata.get_group((tag[1]))
+
+    #get standard deviation
+    std = extractData['scan_z'].std()
+    mean = extractData['scan_z'].mean()
+    print('std = ',std)
+
+    #define return list
+    NGSN = []
+    
+    #extractData 1 row roop
+    i = 0
+    while i<len(extractData):
+        #extract 1 row (dataframe -> series)
+        rowi = extractData.iloc[i]
+        # z > standard deviation?
+        if abs(rowi['scan_z']-mean) > 0.03:
+            #print NG serial number
+            print('NG SN ', rowi['image_path'])
+            NGSN.append(rowi['serial_number'])
+        i += 1
+    return NGSN
+    
+def run(scanData, anaData, tag):
+    #extractMargin(scanData, anaData)
+    #extractLargeZ(scanData,tag)
+    #extractStd(scanData, 0.03)
+    #HistStd(scanData)
+    plotPoint(scanData, anaData, tag)
     
 if __name__ == '__main__':
-    #get argument
-    args = sys.argv
-    #open data as dataframe
+    tag = sys.argv
     with open(f'data/ScanData.pkl', 'rb') as fin:
         scanData = pickle.load(fin)
     with open(f'data/AnalysisData.pkl', 'rb') as fin:
         analysisData = pickle.load(fin)
         
-    run(scanData, analysisData, args)    
+    run(scanData, analysisData, tag)    
