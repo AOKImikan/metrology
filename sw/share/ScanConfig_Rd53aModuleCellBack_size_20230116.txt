@@ -1,0 +1,45 @@
+-20.000  20.300 CellT,CellL
+-19.800  20.700 SensorT,SensorL
+-21.100  20.200 AsicT,AsicL
+-13.600  20.200 CellT
+-13.600  20.700 SensorT
+ -3.600  20.700 SensorT
+ -3.600  20.200 CellT
+ 20.900  20.200 AsicT,AsicR
+ 19.900  20.200 CellT,CellR
+ 19.400  20.700 SensorT,SensorR
+ 20.900   4.700 AsicR
+ 19.900  10.700 CellR
+ 19.900  -7.300 CellR
+ 20.900  -7.300 AsicR
+ 19.900 -19.900 CellB,CellR
+ 20.600 -19.900 AsicB,AsicR
+ 19.300 -20.300 SensorB,SensorR
+ -0.700 -20.300 SensorB
+ -0.700 -19.800 CellB
+-12.200 -19.800 CellB
+-20.000 -19.800 CellB,CellL
+-19.800 -20.200 SensorB,SensorL
+-21.100 -19.800 AsicB,AsicL
+-21.100  -9.800 AsicL
+-20.000  -9.800 CellL
+-20.000   0.200 CellL
+-21.100   0.700 AsicL
+ -5.400   6.200 CellHoleTL
+ -6.000   6.900 CellHoleTL
+ -6.600   6.200 CellHoleTL
+ -6.000   5.600 CellHoleTL
+  6.600   6.200 CellHoleTR
+  6.000   6.800 CellHoleTR
+  5.400   6.200 CellHoleTR
+  6.000   5.600 CellHoleTR
+  6.000  -5.300 CellHoleBR
+  5.400  -5.800 CellHoleBR
+  6.000  -6.400 CellHoleBR
+  6.600  -5.800 CellHoleBR
+ -5.400  -5.800 CellHoleBL
+ -6.000  -5.200 CellHoleBL
+ -6.700  -5.800 CellHoleBL
+ -6.000  -6.400 CellHoleBL
+
+

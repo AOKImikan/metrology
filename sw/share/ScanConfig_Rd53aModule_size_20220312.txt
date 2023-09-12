@@ -1,0 +1,47 @@
+#ScanConfig:Rd53aModule_size_20220312
+-19.900 -20.060 FlexL,FlexB
+-19.900 -12.060 FlexL
+-19.900  -4.000 FlexL
+-19.900  -4.000 FlexL
+-19.900  12.060 FlexL
+-19.900  20.100 FlexL,FlexT
+-12.000  20.100 FlexT
+ 12.000  20.100 FlexT
+ 16.000  20.100 FlexT
+ 20.060  20.100 FlexT,FlexR
+ 20.060  12.000 FlexR
+ 20.060   4.000 FlexR
+ 20.060  -4.000 FlexR
+ 20.060 -12.000 FlexR
+ 20.060 -20.100 FlexR,FlexB
+ 12.000 -20.100 FlexB
+  3.500 -20.100 FlexB
+ -3.500 -20.100 FlexB
+-12.000 -20.100 FlexB
+-20.000 -20.060 FlexB,FlexL
+-20.900 -20.060 AsicL,AsicB
+-20.900 -12.000 AsicL
+-20.900  -4.000 AsicL
+-20.900   4.000 AsicL
+-20.900  12.000 AsicL
+-20.900  20.000 AsicL,AsicT
+ 20.960  20.000 AsicR,AsicT
+ 20.960  12.000 AsicR
+ 20.960   4.000 AsicR
+ 20.960  -4.000 AsicR
+ 20.960 -12.000 AsicR
+ 20.960 -20.100 AsicR,AsicB
+-19.600 -20.400 SensorL,SensorB
+-12.000 -20.400 SensorB
+ -4.000 -20.400 SensorB
+  4.000 -20.400 SensorB
+ 12.000 -20.400 SensorB
+ 19.500 -20.500 SensorB,SensorR
+-19.500  20.300 SensorT,SensorL
+-12.000  20.300 SensorT
+ 12.000  20.300 SensorT
+ 19.600  20.300 SensorT,SensorR
+-21.500  21.000 JigL,JigT
+-21.500 -21.000 JigL,JigB
+ 22.000 -21.000 JigR,JigB
+ 22.000  21.000 JigT,JigR

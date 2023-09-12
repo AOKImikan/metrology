@@ -1,0 +1,76 @@
+QWidget {
+}
+
+QWidget#main {
+    background-color: white;
+}
+
+QWidget#controlFrame QPushButton{
+    width: 150;
+}
+
+QWidget#frameConfig {
+    background-color: #FAEEC7;
+}
+
+QWidget#frameSummary {
+    background-color: #C2FDDD;
+}
+
+QWidget#frameLog {
+    background-color: white;
+}
+
+QWidget#frameDetail {
+    background-color: #CCFBEC;
+}
+QWidget#ConfigSummary {
+    background-color: blue;
+}
+
+QGroupBox {
+    background-color: white;
+    padding: 0 0 0 0;
+    border: 1px solid blue;
+    margin: 10 0 0 0;
+}
+
+QGroupBox QVBoxLayout {
+    background-color: white;
+    padding: 0 0 0 0;
+    border: 3px none;
+    margin: 0 0 0 0;
+}
+QGroupBox QFrame {
+    background-color: #CCefaa;
+    padding: 0 0 0 0;
+    border: 3px none;
+    margin: 0 0 0 0;
+}
+
+QTabWidget {
+    background-color: #D1CAC7;
+    padding: 0 0 0 0;
+    margin: 0 0 0 0;
+}
+
+QTableWidget {
+    padding: 0 0 0 0;
+    margin: 0 0 0 0;
+}
+
+QScrollArea {
+    background-color: navy;
+    padding: 0 0 0 0;
+    margin: 0 0 0 0;
+}
+
+QFrame#PhotoPanel {
+    background-color: #F6D8CE;
+}
+
+QFrame#PhotoPanel QTextEdit#photoMessage {
+    font-size: 20px;
+    color: red;
+}
+

@@ -1,0 +1,39 @@
+ScanConfig:ITkPixV1.0Flex_v4.1_v1.0 0
+#
+-20.2     20.2    Jig       height
+-20.2    -20.2    Jig       height  
+ 20.2    -20.2    Jig       height
+ 20.2     20.2    Jig       height
+ 28.5     27.2    HoleTL    size
+ 25.2     27.2    HoleTL    size
+ 26.9     29.0    HoleTL    size
+ 26.9     25.6    HoleTL    size
+-25.3    -25.4    HoleBR    size
+-28.4    -28.3    HoleBR    size
+-26.0    -27.9    HoleBR    size
+-28.3    -25.6    HoleBR    size
+-10.132    9.5    Pad1      height
+ 8.984     9.5    Pad2      height
+ 10.516  -11.192  Pad3      height
+ -9.716  -8.792   Pad4      height
+-18.7    -18.9    FmarkTL   size
+-18.8     19.7    FmarkBL   size
+ 18.8     19.6    FmarkBR   size
+ 18.8    -18.9    FmarkTR   size
+ 19.4     19.5    FlexL     size
+ 19.4      5.1    FlexL     size
+ 19.4     -9.9    FlexL     size
+ 19.4    -18.7    FlexL     size
+ 18.5    -19.6    FlexB     size
+ 10.5    -19.6    FlexB     size
+-10.5    -19.6    FlexB     size
+-18.5    -19.6    FlexB     size
+-19.7    -18.7    FlexR     size
+-19.7    -10.7    FlexR     size
+-19.7     10.7    FlexR     size
+-19.7     18.7    FlexR     size
+-18.8     20.3    FlexT     size
+-10.8     20.3    FlexT     size
+ 10.8     20.3    FlexT     size
+ 18.3     20.3    FlexT     size
+

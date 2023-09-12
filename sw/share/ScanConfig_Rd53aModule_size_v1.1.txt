@@ -1,0 +1,78 @@
+ScanConfig:Rd53aModule_size_v1.1 0
+-19.90  -20.06 FlexL,FlexB
+-19.90  -12.06 FlexL
+-19.90   -4.00 FlexL
+-19.90  -4.00  FlexL
+-19.90  12.06  FlexL
+-19.90  20.10  FlexL,FlexT
+#
+-19.90   20.10 FlexT,FlexL
+-12.00   20.10 FlexT
+12.00  20.10 FlexT
+16.00  20.10 FlexT
+20.06  20.10 FlexT,FlexR
+#
+20.06  20.10 FlexR,FlexT
+20.06  12.00 FlexR
+20.06   4.00 FlexR
+20.06   -4.00 FlexR
+20.06  -12.00 FlexR
+20.06  -20.10 FlexR,FlexB
+#
+20.06 -20.10 FlexB,FlexR
+12.00 -20.10 FlexB
+3.50  -20.10 FlexB
+-3.50   -20.10 FlexB
+-12.00  -20.10 FlexB
+-20.00  -20.06 FlexB,FlexL
+#
+-20.90 -20.06  AsicL,AsicB
+-20.90 -12.00  AsicL
+-20.90  -4.00  AsicL
+-20.90  4.00  AsicL
+-20.90  12.00 AsicL
+-20.90  20.00 AsicL,AsicT
+#
+20.96  20.96 AsicR,AsicT
+20.96  12.00 AsicR
+20.96  -4.00  AsicR
+20.96  -4.00  AsicR
+20.96 -12.00  AsicR
+20.96 -20.10  AsicR,AsicB
+#
+-19.60 -20.40   SensorL,SensorB
+-12.00 -20.40   SensorB
+-4.00 -20.40    SensorB
+4.00 -20.40   SensorB
+12.00 -20.40  SensorB
+19.50 -20.50  SensorB,SensorR
+#
+-19.50 20.30    SensorT,SensorL
+-12.00 20.30    SensorT
+#(4.00 20.30)  SensorT
+#(-4.00 20.30) SensorT
+#(-10.50 18.00 SensorT,(wide_sensor_area_for_focus))
+12.00 20.30   SensorT,1mm_step
+19.60 20.30   SensorT,SensorR
+#
+-21.50 -21.00  JigL,JigB
+-21.50 -12.00  JigL
+-21.50 -4.00   JigL
+-21.50 4.00  JigL
+-21.50 12.00 JigL
+-21.50 21.00 JigL,JigT
+-12.00 21.00 JigT
+#(4
+#(-4
+12.00 21.00 JigT
+22.00 21.00 JigT,JigR
+22.00 12.00 JigR
+22.00 4.00  JigR
+22.00 -6.00   JigR
+22.00 -12.00  JigR
+22.00 -21.00  JigR,JigB
+12.00 -21.00  JigB
+4.00 -21.00   JigB
+-4.00 -21.00    JigB
+-12.00 -21.00   JigB
+-21.50 -21.00   JigB,JigL

@@ -1,0 +1,84 @@
+#!/usr/bin/env python3
+import os
+import pickle
+import tkinter as tk
+from tkinter import ttk
+import pmm
+
+class MainWindow(ttk.Frame):
+    def __init__(self, root):
+        super().__init__(root)
+        self.root = root
+        self.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+        self.buildGui()
+
+    def buildGui(self):
+        x0, y0 = 300, 300
+        r = 10
+        canvas = tk.Canvas(self, width=600, height=600, bg='green')
+        canvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+        canvas.create_oval(x0-r, y0-r, x0+r, y0+r, fill='red')
+        canvas.create_line(0, 0, 300, 600)
+        
+def createWindow():
+    root = tk.Tk()
+    root.geometry('600x600')
+    root.title('Scan point validation')
+    window = MainWindow(root)
+    return window
+
+def readData(dn):
+    appdata = None
+    data = {}
+    if os.path.exists(dn):
+        with open(f'{dn}/data.pickle', 'rb') as fin:
+            appdata = pickle.load(fin)
+            appdata = appdata.deserialize()
+    if appdata:
+        print(appdata)
+        #print(dir(appdata))
+        sp = appdata.getScanProcessor('ITkPixV1xModule.Size')
+        patternAnalysis = sp.analysisList[0]
+        sizeAnalysis = sp.analysisList[1]
+        #print('Pattern analysis output data')
+        for k,v in patternAnalysis.outData.items():
+            data[k] = v
+            #print(f'  {k}: {v}')
+        #print('Size analysis output data')
+        for k,v in sizeAnalysis.outData.items():
+            data[k] = v
+            #print(f'  {k}: {v}')
+    return data
+
+def extractSN(dn):
+    words = dn.split('/')
+    return words[1]
+
+def processData(data):
+    for k, v in data.items():
+        print(f'SN = {k}')
+        print(f'Data keys: {v.keys()}')
+        flexL = v['FlexL'].get('value')
+        flexR = v['FlexR'].get('value')
+        FmarkTL = v['FmarkTL_0_point']
+        AsicFmarkTL = v['AsicFmarkTL_0_point']
+        print(flexL)
+        print(FmarkTL.position[0], FmarkTL.position[1])
+        print(AsicFmarkTL)
+        
+def run(dnames):
+    data = {}
+    for dn in dnames:
+        x = readData(dn)
+        sn = extractSN(dn)
+        data[sn] = x
+    processData(data)
+
+if __name__ == '__main__':
+    dnames = [
+        'MODULE/20UPGM22601021/MODULE_ASSEMBLY/002'
+        ]
+    run(dnames)
+    window = createWindow()
+    window.root.mainloop()
+    

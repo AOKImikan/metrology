@@ -1,0 +1,57 @@
+ScanConfig:ITkpixv1Module_size_20230316
+-22.000 -20.200  Jig
+-22.000  20.200  Jig
+ 22.000  20.200  Jig
+ 22.000 -20.200  Jig
+  5.700  -7.700  Pickup1
+ 10.300  11.300  Pickup2
+ -9.900   8.900  Pickup3
+-10.000  -9.600  Pickup4
+-18.900 -19.800  FmarkTR
+-18.900  18.800  FmarkBR
+ 18.700  18.800  FmarkBL
+ 18.700 -19.800  FmarkTL
+-20.800 -20.500  AsicFmarkTR
+-20.800  19.600  AsicFmarkBR
+ 20.900  19.600  AsicFmarkBL
+ 20.900 -20.500  AsicFmarkTL
+ 10.200  18.200  HVCapacitor
+  9.600  18.200  HVCapacitor
+  9.200  18.200  HVCapacitor
+  8.600  18.200  HVCapacitor
+  8.000  18.200  HVCapacitor
+  3.000  15.500  HVConnector
+  0.000  15.500  HVConnector
+ -3.000  15.500  HVConnector
+-20.800 -19.500  AsicR
+-20.800  -5.100  AsicR
+-20.800   9.900  AsicR
+-20.800  18.600  AsicR
+-18.000  19.600  SensorB
+-11.100  19.600  SensorB
+  8.900  19.600  SensorB
+ 18.300  19.600  SensorB
+ 19.400  18.700  AsicL
+ 19.400  10.000  AsicL
+ 19.400 -10.000  AsicL
+ 19.400 -19.500  AsicL
+ 18.000 -20.800  SensorT
+ 10.100 -20.800  SensorT
+-10.000 -20.800  SensorT
+-18.000 -20.800  SensorT
+ 19.400  19.500  FlexL
+ 19.400   5.100  FlexL
+ 19.400  -9.900  FlexL
+ 19.400 -18.700  FlexL
+ 18.500 -20.600  FlexT
+ 10.500 -20.600  FlexT
+-10.500 -20.600  FlexT
+-18.500 -20.600  FlexT
+-19.500 -18.700  FlexR
+-19.500 -10.700  FlexR
+-19.500  10.700  FlexR
+-19.500  18.700  FlexR
+-18.000  19.540  FlexB
+-10.000  19.540  FlexB
+ 10.000  19.540  FlexB
+ 18.000  19.540  FlexB
