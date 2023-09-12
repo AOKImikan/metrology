@@ -9,6 +9,33 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+def extractLargeZ(scanData,tag):
+    #group scandata dataframe by tags
+    pltdata = scanData.groupby(['tags'])
+    #extract by specified tag
+    extractData = pltdata.get_group((tag[1]))
+
+    #get standard deviation
+    std = extractData['scan_z'].std()
+    mean = extractData['scan_z'].mean()
+    print('std = ',std)
+
+    #define return list
+    NGSN = []
+    
+    #extractData 1 row roop
+    i = 0
+    while i<len(extractData):
+        #extract 1 row (dataframe -> series)
+        rowi = extractData.iloc[i]
+        # z > standard deviation?
+        if abs(rowi['scan_z']-mean) > 0.03:
+            #print NG serial number
+            print('NG SN ', rowi['image_path'])
+            NGSN.append(rowi['serial_number'])
+        i += 1
+    return NGSN
+
 def plotPoint(scanData, anaData, tagName):    
     #group scandata dataframe by tags
     grouptag = scanData.groupby(['tags'])
@@ -62,14 +89,18 @@ def plotPoint(scanData, anaData, tagName):
         x = extractData_ana.loc[extractData_ana.query(name).index[0], 'detect_x']
         y = extractData_ana.loc[extractData_ana.query(name).index[0], 'detect_y']
 
-        ##if serial number = NG serial number 
-        if sn == NGsn[0] :
-            #add detected point as red
-            ax.scatter(x,y,color="#ff0000", label='large deviation of z')
+        if len(NGsn)>0:
+            ##if serial number = NG serial number 
+            if sn in NGsn:
+                #add detected point as red
+                ax.scatter(x,y,color="#ff0000", label='large deviation of z')
+            else:
+                #add detected point as green
+                ax.scatter(x,y,color="#007fff")
         else:
             #add detected point as green
             ax.scatter(x,y,color="#007fff")
-            
+       
     #set legend
     plt.legend(loc="upper right")
     
@@ -96,7 +127,7 @@ def HistStd(scanData):
     #get std x,y,z
     stdDF = grouptag.std()
     #get std z
-    stdlist = stdDF['z']
+    stdlist = stdDF['scan_z']
 
     #define matplotlib figure
     fig = plt.figure(figsize=(10,9))
@@ -116,48 +147,32 @@ def extractStd(scanData, threshold):
     #get std x,y,z
     stdDF = grouptag.std()
 
-    largeStd = stdDF[stdDF.z > threshold]
+    largeStd = stdDF[stdDF.scan_z > threshold]
     print(largeStd)  
-    
-def extractLargeZ(scanData,tag):
-    #group scandata dataframe by tags
-    pltdata = scanData.groupby(['tags'])
-    #extract by specified tag
-    extractData = pltdata.get_group((tag[1]))
-
-    #get standard deviation
-    std = extractData['scan_z'].std()
-    mean = extractData['scan_z'].mean()
-    print('std = ',std)
-
-    #define return list
-    NGSN = []
-    
-    #extractData 1 row roop
-    i = 0
-    while i<len(extractData):
-        #extract 1 row (dataframe -> series)
-        rowi = extractData.iloc[i]
-        # z > standard deviation?
-        if abs(rowi['scan_z']-mean) > 0.03:
-            #print NG serial number
-            print('NG SN ', rowi['image_path'])
-            NGSN.append(rowi['serial_number'])
-        i += 1
-    return NGSN
-    
-def run(scanData, anaData, tag):
-    #extractMargin(scanData, anaData)
-    #extractLargeZ(scanData,tag)
-    #extractStd(scanData, 0.03)
-    #HistStd(scanData)
-    plotPoint(scanData, anaData, tag)
+        
+def run(scanData, anaData, args):
+    #####extractMargin(scanData, anaData)
+    #command argment is true
+    if len(args)==3:
+        com = args[2]
+        if com=='exStd':
+            #show tag and scan xyz if large std
+            extractStd(scanData, 0.03)
+        if com=='histStd':
+            #std histgram
+            HistStd(scanData)
+    #none command
+    if len(args)==2:
+        #plot scan point with image center
+        plotPoint(scanData, anaData, args)
     
 if __name__ == '__main__':
-    tag = sys.argv
+    #get argument
+    args = sys.argv
+    #open data as dataframe
     with open(f'data/ScanData.pkl', 'rb') as fin:
         scanData = pickle.load(fin)
     with open(f'data/AnalysisData.pkl', 'rb') as fin:
         analysisData = pickle.load(fin)
         
-    run(scanData, analysisData, tag)    
+    run(scanData, analysisData, args)    
