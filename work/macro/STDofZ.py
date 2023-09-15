@@ -119,6 +119,7 @@ def HistStd(scanData):
     grouptag = scanData.groupby(['tags'])
     #get std x,y,z
     stdDF = grouptag.std()
+    stdDF.to_csv('data/scandataSTD.csv')
     #get std z
     stdlist = stdDF['scan_z']
 

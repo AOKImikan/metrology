@@ -8,6 +8,19 @@ import pmm
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+
+def histMargin(df):
+    #define matplotlib figure
+    fig = plt.figure(figsize=(10,9))
+    ax = fig.add_subplot(1,1,1)
+    #fill margin list 
+    ax.hist(df['margin'], bins=50)
+
+    ax.set_title('Fmark\'s margin')
+    ax.set_xlabel('margin')
+    ax.set_ylabel('unmber of serialnumber and tag')
+    #show hist
+    plt.show()
     
 def calculateMargin(df):
     #copy dataframe (for safety)
@@ -61,7 +74,9 @@ def specialTag(scanData, anaData, args):
     #save the created data
     margin_df.to_pickle('data/margin/{}.pkl'.format(tag))
     margin_df.to_csv('data/margin/{}.csv'.format(tag))
-
+    print(margin_df)
+    print('save file to "data/margin/{}.pkl"'.format(tag))
+    
 def allFmark(scanData, anaData):
     #get all tag list from analysis data
     taglist = anaData['tags'].unique()
@@ -77,7 +92,19 @@ def allFmark(scanData, anaData):
 
     #save the created data
     margin_df.to_pickle('data/margin/Fmarkmargin.pkl')
-    margin_df.to_csv('data/margin/Fmarkmargin.csv')    
+    margin_df.to_csv('data/margin/Fmarkmargin.csv')
+    #print(margin_df)
+    print('save file to "data/margin/Fmarkmargin.pkl"')
+
+    ex = margin_df[margin_df['margin']>0.3]
+    print('margin = ' , ex['margin'])
+    print('serial number = ' , ex['serial_number'])
+    print('tag = ' , ex['tags'])
+    print('scan z = ' , ex['scan_z'])
+    print('image path = ' , ex['image_path'])
+    
+    #make hist
+    #histMargin(margin_df)
     
 if __name__ == '__main__':
     #get argument
