@@ -17,7 +17,8 @@ def LoadData(dn):
             appdata = json.load(fin)
     if appdata:
         results = appdata['results']
-        #passed = appdata['passed']
+        passed = appdata['passed']
+        print(appdata['component'])
     return results
 
 def hist(dnames, key, arg = 8):
@@ -83,7 +84,6 @@ def plot(dnames):
     plt.show()
 
 def run(dnames, args):
-    
     if args.TR:
         hist(dnames, 'PCB_BAREMODULE_POSITION_TOP_RIGHT', int(args.TR))
     elif args.BL:
@@ -121,21 +121,23 @@ if __name__ == '__main__':
     parser.add_argument('--HVcapa', help='HV_CAPACITOR_THICKNESS',
                         action='store_true')
     args = parser.parse_args()  # analyze arguments
-    
-    # assign read file path 
-    files = glob.glob("/nfs/space3/tkohno/atlas/ITkPixel/Metrology/HR/MODULE/20UPGM*")
+
+    # assign read file path
+    files = glob.glob("/nfs/space3/aoki/Metrology/kekdata/Metrology/BARE_MODULE/20UPG*")
     dnames = []  # define path list
     for fn in files:
-        filepath = fn + '/MODULE_ASSEMBLY'  # stage
+        filepath = fn + '/BAREMODULERECEPTION'  # stage
         if os.path.exists(filepath) :  
             scanNumList = glob.glob(filepath+'/*')
             scanNumList.sort()
             count = len(scanNumList)
             dnames.append(scanNumList[count-1])
     print(f'counts of module : {len(dnames)}')
-    
-    run(dnames,args)
 
+    # run
+    run(dnames,args)
+    
     t2 = time.time()  # get final timestamp
     elapsed_time = t2-t1  # calculate run time
     print(f'run time : {elapsed_time}')  
+
