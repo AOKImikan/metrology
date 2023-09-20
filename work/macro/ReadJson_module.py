@@ -41,21 +41,24 @@ def hist(dnames, key, arg = 8):
     ax = fig.add_subplot(1,1,1)
 
     # fill thickness list 
-    ax.hist(mergedlist, bins=10)
+    ax.hist(mergedlist, bins=50)
     
     # set hist style
     if arg < 8:
         ax.set_title(f'{key}-{arg}')
+        ax.set_xlabel(f'{key}-{arg}')
     else:
         ax.set_title(f'{key}')
-    ax.set_xlabel('must be change')
+        ax.set_xlabel(f'{key}')
     ax.set_ylabel('number')
 
     # show hist
     if arg < 8:
         plt.savefig(f'resultsHist/{key}-{arg}.jpg')  #save as jpeg
+        print(f'save as resultsHist/{key}-{arg}.jpg')
     else:
         plt.savefig(f'resultsHist/{key}.jpg')  #save as jpeg
+        print(f'save as resultsHist/{key}.jpg')
     #plt.show()
 
 def plot(dnames):

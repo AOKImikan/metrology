@@ -12,94 +12,72 @@ import argparse
 # db.json -> 
 def LoadData(dn):
     appdata = None
-    if os.path.exists(dn):
+    results = {}
+    if os.path.exists(f'{dn}/db.json'):
         with open(f'{dn}/db.json', 'rb') as fin:
             appdata = json.load(fin)
-    if appdata:
         results = appdata['results']
         passed = appdata['passed']
-        print(appdata['component'])
     return results
 
-def hist(dnames, key, arg = 8):
+def hist(dnames, key, arg = 'unspecified'):
     mergedlist = []
-    if arg < 8:    # multiple values and individual
+    if arg is 'unspecified':    # multiple values and individual
         for dn in dnames:
             results = LoadData(dn)
-            mergedlist.append(results[key][arg])
-    elif arg > 8:  # multiple values and all
+            if len(results)>0:
+                mergedlist.append(results[key])
+    else:
         for dn in dnames:
             results = LoadData(dn)
-            for val in results[key]:
-                mergedlist.append(val)
-    else:          # one value (arg=8)
-        for dn in dnames:
-            results = LoadData(dn)
-            mergedlist.append(results[key])
-        
+            if len(results)>0:
+                key2 = f'{key}_{arg}'
+                mergedlist.append(results[key2])
+                
+                
     # define matplotlib figure
     fig = plt.figure(figsize=(8,7))
     ax = fig.add_subplot(1,1,1)
 
     # fill thickness list 
-    ax.hist(mergedlist, bins=10)
+    ax.hist(mergedlist, bins=50)
     
     # set hist style
-    if arg < 8:
-        ax.set_title(f'{key}-{arg}')
-    else:
+    if arg is 'unspecified':
         ax.set_title(f'{key}')
-    ax.set_xlabel('must be change')
+        ax.set_xlabel(f'{key}')
+    else:
+        ax.set_title(f'{key}-{arg}')
+        ax.set_xlabel(f'{key}-{arg}')
     ax.set_ylabel('number')
 
     # show hist
-    if arg < 8:
-        plt.savefig(f'resultsHist/{key}-{arg}.jpg')  #save as jpeg
-    else:
+    if arg is 'unspecified':
         plt.savefig(f'resultsHist/{key}.jpg')  #save as jpeg
+        print(f'save as resultsHist/{key}.jpg')
+    else:
+        plt.savefig(f'resultsHist/{key}-{arg}.jpg')  #save as jpeg
+        print(f'save as resultsHist/{key}-{arg}.jpg')
     #plt.show()
 
-def plot(dnames):
-    fig = plt.figure(figsize=(8,7))
-    ax = fig.add_subplot(1,1,1)
-
-    TRlistX,TRlistY = [],[]
-    BLlistX,BLlistY = [],[]
-    for dn in dnames:
-        results = LoadData(dn)
-        TR=results['PCB_BAREMODULE_POSITION_TOP_RIGHT']
-        BL=results['PCB_BAREMODULE_POSITION_BOTTOM_LEFT']
-        TRlistX.append(results['PCB_BAREMODULE_POSITION_TOP_RIGHT'][0])
-        TRlistY.append(results['PCB_BAREMODULE_POSITION_TOP_RIGHT'][1])
-        BLlistX.append(results['PCB_BAREMODULE_POSITION_BOTTOM_LEFT'][0])
-        BLlistY.append(results['PCB_BAREMODULE_POSITION_BOTTOM_LEFT'][1])
-
-        # set plot point    
-        ax.scatter(BL[0],BL[1],color="#007fff")      
-    ax.set_title('PCB_BAREMODULE_POSITION_BOTTOM_LEFT')
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
-   
-    # draw plot
-    plt.show()
-
 def run(dnames, args):
-    if args.TR:
-        hist(dnames, 'PCB_BAREMODULE_POSITION_TOP_RIGHT', int(args.TR))
-    elif args.BL:
-        hist(dnames, 'PCB_BAREMODULE_POSITION_BOTTOM_LEFT', int(args.BL))
-    elif args.aveThick:
-        hist(dnames, 'AVERAGE_THICKNESS', int(args.aveThick))
-    elif args.stdThick:
-        hist(dnames, 'STD_DEVIATION_THICKNESS', int(args.stdThick))
-    elif args.angle:
-        hist(dnames, 'ANGLE_PCB_BM')
-    elif args.pickup:
-        hist(dnames, 'THICKNESS_VARIATION_PICKUP_AREA')
-    elif args.power:
-        hist(dnames, 'THICKNESS_INCLUDING_POWER_CONNECTOR')
-    elif args.HVcapa:
-        hist(dnames, 'HV_CAPACITOR_THICKNESS')
+    if args.sensor:
+        hist(dnames, 'SENSOR', args.sensor)
+    elif args.fechips:
+        hist(dnames, 'FECHIPS', args.fechips)
+    elif args.fethick:
+        hist(dnames, 'FECHIP_THICKNESS')
+    elif args.barethick:
+        hist(dnames, 'BAREMODULE_THICKNESS')
+    elif args.senthick:
+        hist(dnames, 'SENSOR_THICKNESS')
+    elif args.std:
+        if args.std == 'sensor':
+            hist(dnames, 'SENSOR_THICKNESS_STD_DEVIATION')
+        if args.std == 'fe':
+            hist(dnames, 'FECHIP_THICKNESS_STD_DEVIATION')
+        if args.std == 'bare':
+            hist(dnames, 'BAREMODULE_THICKNESS_STD_DEVIATION')
     else:
         print('Error: No such Command. type option -h or --help')  
     
@@ -109,17 +87,12 @@ if __name__ == '__main__':
     # make parser
     parser = argparse.ArgumentParser()
     # add argument
-    parser.add_argument('--TR', help='PCB_BAREMODULE_POSITION_TOP_RIGHT',choices=['0','1','10'])
-    parser.add_argument('--BL', help='PCB_BAREMODULE_POSITION_BOTTOM_LEFT',choices=['0','1','10'])
-    parser.add_argument('--aveThick', help='AVERAGE_THICKNESS',choices=['0','1','2','3','10'])
-    parser.add_argument('--stdThick', help='STD_DEVIATION_THICKNESS',choices=['0','1','2','3','10'])
-    parser.add_argument('--angle', help='ANGLE_PCB_BM', action='store_true')
-    parser.add_argument('--pickup', help='THICKNESS_VARIATION_PICKUP_AREA',
-                        action='store_true')
-    parser.add_argument('--power', help='THICKNESS_INCLUDING_POWER_CONNECTOR',
-                        action='store_true')
-    parser.add_argument('--HVcapa', help='HV_CAPACITOR_THICKNESS',
-                        action='store_true')
+    parser.add_argument('-s','--sensor', help='SENSOR',choices=['X','Y'])
+    parser.add_argument('-f','--fechips', help='FECHIPS',choices=['X','Y'])
+    parser.add_argument('--fethick', help='FECHIPS_THICKNESS',action='store_true')
+    parser.add_argument('--barethick', help='BAREMODULE_THICKNESS',action='store_true')
+    parser.add_argument('--senthick', help='SENSOR_THICKNESS', action='store_true')
+    parser.add_argument('--std', help='THICKNESS_STD_DEVIATION',choices=['fe','bare','sensor'])
     args = parser.parse_args()  # analyze arguments
 
     # assign read file path
