@@ -148,7 +148,7 @@ def run(scanData, analydata):
 
     #for k,v in analysis.items():
         #print(f'{k}:{v}')
-    #plot2(scanData)
+    #plot4(scanData)
 
 if __name__ == '__main__':
     scanData = pd.read_csv('data/DataFrame.csv')
