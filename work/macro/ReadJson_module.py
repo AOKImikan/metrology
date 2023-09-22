@@ -9,7 +9,16 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import argparse
 
-# db.json -> 
+# get key extract by values
+def getNGSN(dic, threshold):
+    mean = np.mean(list(dic.values()))
+    keys = [k for k,v in dic.items() if abs(v-mean) > threshold]
+    if keys:
+        return keys
+    else:
+        return None
+
+# db.json -> results and somponent serial number
 def LoadData(dn):
     appdata = None
     if os.path.exists(dn):
@@ -17,48 +26,62 @@ def LoadData(dn):
             appdata = json.load(fin)
     if appdata:
         results = appdata['results']
-        #passed = appdata['passed']
-    return results
+        sn = appdata['component']
+    return results,sn
 
+# make hist
 def hist(dnames, key, arg = 8):
-    mergedlist = []
+    dataDict = {}
     if arg < 8:    # multiple values and individual
         for dn in dnames:
-            results = LoadData(dn)
-            mergedlist.append(results[key][arg])
+            results = LoadData(dn)[0]
+            sn = LoadData(dn)[1]
+            dataDict[sn]=results[key][arg]
+            #mergedlist.append(results[key][arg])
     elif arg > 8:  # multiple values and all
         for dn in dnames:
-            results = LoadData(dn)
+            results = LoadData(dn)[0]
+            sn = LoadData(dn)[1]
             for val in results[key]:
-                mergedlist.append(val)
+                dataDict[sn]=val
+                #mergedlist.append(val)
     else:          # one value (arg=8)
         for dn in dnames:
-            results = LoadData(dn)
-            mergedlist.append(results[key])
-        
+            results = LoadData(dn)[0]
+            sn = LoadData(dn)[1]
+            dataDict[sn]=results[key]
+            #mergedlist.append(results[key])
+
+    # print NG data            
+    std = np.std(list(dataDict.values()))  # get data value std deviation
+    SNlist = getNGSN(dataDict,std*2)  # get bad serial number list
+    for k in  SNlist:
+        print(k,'  ',dataDict[k])  # print serial number and data value   
+    
     # define matplotlib figure
     fig = plt.figure(figsize=(8,7))
     ax = fig.add_subplot(1,1,1)
 
     # fill thickness list 
-    ax.hist(mergedlist, bins=50)
+    ax.hist(dataDict.values(), bins=50, alpha=1, histtype="stepfilled",edgecolor='black')
     
     # set hist style
+    plt.tick_params(labelsize=18)
     if arg < 8:
-        ax.set_title(f'{key}-{arg}')
-        ax.set_xlabel(f'{key}-{arg}')
+        #ax.set_title(f'{key}_{arg}',fontsize=18)
+        ax.set_xlabel(f'{key}_{arg}',fontsize=18)
     else:
-        ax.set_title(f'{key}')
-        ax.set_xlabel(f'{key}')
-    ax.set_ylabel('number')
+        #ax.set_title(f'{key}',fontsize=18)
+        ax.set_xlabel(f'{key}',fontsize=18) 
+    ax.set_ylabel('events',fontsize=18)
 
     # show hist
     if arg < 8:
-        plt.savefig(f'resultsHist/{key}-{arg}.jpg')  #save as jpeg
-        print(f'save as resultsHist/{key}-{arg}.jpg')
+        plt.savefig(f'resultsHist/{key}_{arg}_HR.jpg')  #save as jpeg
+        print(f'save as resultsHist/{key}_{arg}_HR.jpg')
     else:
-        plt.savefig(f'resultsHist/{key}.jpg')  #save as jpeg
-        print(f'save as resultsHist/{key}.jpg')
+        plt.savefig(f'resultsHist/{key}_HR.jpg')  #save as jpeg
+        print(f'save as resultsHist/{key}_HR.jpg')
     #plt.show()
 
 def plot(dnames):
@@ -126,7 +149,8 @@ if __name__ == '__main__':
     args = parser.parse_args()  # analyze arguments
     
     # assign read file path 
-    files = glob.glob("/nfs/space3/tkohno/atlas/ITkPixel/Metrology/HR/MODULE/20UPGM*")
+    #files = glob.glob("/nfs/space3/tkohno/atlas/ITkPixel/Metrology/HR/MODULE/20UPGM*")
+    files = glob.glob("/nfs/space3/aoki/Metrology/HR/MODULE/20UPGM*")
     dnames = []  # define path list
     for fn in files:
         filepath = fn + '/MODULE_ASSEMBLY'  # stage
@@ -135,8 +159,10 @@ if __name__ == '__main__':
             scanNumList.sort()
             count = len(scanNumList)
             dnames.append(scanNumList[count-1])
+           
     print(f'counts of module : {len(dnames)}')
-    
+
+    # run main
     run(dnames,args)
 
     t2 = time.time()  # get final timestamp

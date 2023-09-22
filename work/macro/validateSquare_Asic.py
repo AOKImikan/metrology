@@ -42,40 +42,40 @@ class MainWindow(ttk.Frame):
         canvas.create_line(x0/2, 20, x0/2, y0,width=2,arrow="first")
         canvas.create_line(0, y0/2, x0-20, y0/2,width=2,arrow="last")
 
-        taglist = ['FmarkTL', 'FmarkTR', 'FmarkBL', 'FmarkBR']
-        TL = coordinate(exdf, 'FmarkTL')
-        TR = coordinate(exdf, 'FmarkTR')
-        BL = coordinate(exdf, 'FmarkBL')
-        BR = coordinate(exdf, 'FmarkBR')
+        taglist = ['AsicFmarkTL', 'AsicFmarkTR', 'AsicFmarkBL', 'AsicFmarkBR']
+        TL = coordinate(exdf, 'AsicFmarkTL')
+        TR = coordinate(exdf, 'AsicFmarkTR')
+        BL = coordinate(exdf, 'AsicFmarkBL')
+        BR = coordinate(exdf, 'AsicFmarkBR')
         
         # calculate distances 
-        TLTR = calculateDistance(exdf, 'FmarkTL','FmarkTR')
-        TRBR = calculateDistance(exdf, 'FmarkTR','FmarkBR')
-        BLBR = calculateDistance(exdf, 'FmarkBL','FmarkBR')
-        TLBL = calculateDistance(exdf, 'FmarkTL','FmarkBL')
+        TLTR = calculateDistance(exdf, 'AsicFmarkTL','AsicFmarkTR')
+        TRBR = calculateDistance(exdf, 'AsicFmarkTR','AsicFmarkBR')
+        BLBR = calculateDistance(exdf, 'AsicFmarkBL','AsicFmarkBR')
+        TLBL = calculateDistance(exdf, 'AsicFmarkTL','AsicFmarkBL')
         # calculate angles
-        angleBL = calculateAngle(exdf, 'FmarkTL','FmarkBL','FmarkBR')
-        angleTR = calculateAngle(exdf, 'FmarkTL','FmarkTR','FmarkBR')
+        angleBL = calculateAngle(exdf, 'AsicFmarkTL','AsicFmarkBL','AsicFmarkBR')
+        angleTR = calculateAngle(exdf, 'AsicFmarkTL','AsicFmarkTR','AsicFmarkBR')
 
         # draw fmarks
         drawOval(self,x0,y0,TL[0],TL[1],5,"#ff7f00")
         drawOval(self,x0,y0,TR[0],TR[1],5,"#ff7f00")
         drawOval(self,x0,y0,BL[0],BL[1],5,"#ff7f00")
         drawOval(self,x0,y0,BR[0],BR[1],5,"#ff7f00")
-        # draw line connectiong Fmarks
+        # draw line connectiong AsicFmarks
         drawLine(self,x0,y0,TL,TR,"#00a0a0")  
         drawLine(self,x0,y0,TL,BL,"#00a0a0")
         drawLine(self,x0,y0,TR,BR,"#00a0a0")
         drawLine(self,x0,y0,BL,BR,"#00a0a0")
         
         # write distance and angle on canvas
-        canvas.create_text(350,140,text=f'{TLTR:.4g}',fill="#00a0a0",
+        canvas.create_text(350,130,text=f'{TLTR:.4g}',fill="#00a0a0",
                            font=("",16))  # TL to TR
-        canvas.create_text(350,750,text=f'{BLBR:.4g}',fill="#00a0a0",
+        canvas.create_text(350,760,text=f'{BLBR:.4g}',fill="#00a0a0",
                            font=("",16))  # BL to BR
-        canvas.create_text(150,350,text=f'{TLBL:.4g}',angle=90,
+        canvas.create_text(120,350,text=f'{TLBL:.4g}',angle=90,
                            fill="#00a0a0",font=("",16))  # TL to BL
-        canvas.create_text(750,350,text=f'{TRBR:.4g}',angle=90,
+        canvas.create_text(780,350,text=f'{TRBR:.4g}',angle=90,
                            fill="#00a0a0",font=("",16))  # TR to BR
         canvas.create_text(220,710,text=f'{angleBL:.4g}',font=("",16))  # TL-BL-BR
         canvas.create_text(680,180,text=f'{angleTR:.4g}',font=("",16))  # TL-TR-BR    
@@ -115,12 +115,12 @@ def valSquare(df):
     for sn in snList:
         exdf = grouptag_ana.get_group((sn))
         listSN.append(sn)
-        listT.append(calculateDistance(exdf, 'FmarkTL','FmarkTR'))
-        listR.append(calculateDistance(exdf, 'FmarkTR','FmarkBR'))
-        listB.append(calculateDistance(exdf, 'FmarkBL','FmarkBR'))
-        listL.append(calculateDistance(exdf, 'FmarkTL','FmarkBL'))
-        listBL.append(calculateAngle(exdf, 'FmarkTL','FmarkBL','FmarkBR'))
-        listTR.append(calculateAngle(exdf, 'FmarkTL','FmarkTR','FmarkBR'))
+        listT.append(calculateDistance(exdf, 'AsicFmarkTL','AsicFmarkTR'))
+        listR.append(calculateDistance(exdf, 'AsicFmarkTR','AsicFmarkBR'))
+        listB.append(calculateDistance(exdf, 'AsicFmarkBL','AsicFmarkBR'))
+        listL.append(calculateDistance(exdf, 'AsicFmarkTL','AsicFmarkBL'))
+        listBL.append(calculateAngle(exdf, 'AsicFmarkTL','AsicFmarkBL','AsicFmarkBR'))
+        listTR.append(calculateAngle(exdf, 'AsicFmarkTL','AsicFmarkTR','AsicFmarkBR'))
     df = pd.DataFrame()
     df['serial_num']=listSN
     df['range_T']=listT
@@ -129,8 +129,8 @@ def valSquare(df):
     df['range_R']=listR
     df['angle_BL']=listBL
     df['angle_TR']=listTR
-    print(df.describe())
-    df.to_csv('data/FmarkRangeAndAngle.csv')
+    print(df)
+    df.to_csv('data/AsicFmarkRangeAndAngle.csv')
 
 def saveCanvas():
     x = root.winfo_x() + canvas.winfo_x()
@@ -152,7 +152,7 @@ def createWindow(df):
     
     for sn in snList:
         root.geometry('900x900')
-        root.title(f'analyze fmark validation {sn}')
+        root.title(f'analyze Asic fmark validation {sn}')
         extract_ana = grouptag_ana.get_group((sn))
         canvas = window.buildGui(extract_ana)
         #saveCanvas()
