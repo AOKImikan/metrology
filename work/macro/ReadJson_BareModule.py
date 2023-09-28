@@ -2,12 +2,12 @@
 import os
 import json
 import time
-import glob
 import pmm
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import argparse
+from myModules import data_baremodule
 
 # get key extract by values
 def getNGSN(dic, threshold):
@@ -17,6 +17,7 @@ def getNGSN(dic, threshold):
         return keys
     else:
         return None
+    
 def calculateSTD(dic):
     std = np.std(list(dic.values()))
     print(np.std(list(dic.values())))
@@ -34,23 +35,26 @@ def LoadData(dn):
         sn = appdata['component']
     return results, sn
 
-def hist(dnames, key, arg = 'unspecified'):
+def hist(dnames, key, requiremin, requiremax, arg = 'unspecified'):
     dataDict = {}
-    mergedlist = []
+    exception = ['20UPGB42399001','20UPGB42399002','20UPGB42399003']
+    
     if arg is 'unspecified':    # multiple values and individual
         for dn in dnames:
             results = LoadData(dn)[0]
             sn = LoadData(dn)[1]
             if len(results)>0:
-                #mergedlist.append(results[key])
-                dataDict[sn]=results[key]
+                if sn in exception and key.endswith('THICKNESS'):
+                    dataDict[sn]=results[key]*1000
+                else:
+                    dataDict[sn]=results[key]
     else:
         for dn in dnames:
             results = LoadData(dn)[0]
             sn = LoadData(dn)[1]
             if len(results)>0:
                 key2 = f'{key}_{arg}'
-                #mergedlist.append(results[key2])
+
                 dataDict[sn]=results[key2]
 
     # print NG data            
@@ -62,6 +66,11 @@ def hist(dnames, key, arg = 'unspecified'):
     # define matplotlib figure
     fig = plt.figure(figsize=(8,7))
     ax = fig.add_subplot(1,1,1)
+
+    # paint required area
+    ax.axvspan(requiremin, requiremax,color='yellow',alpha=0.5)
+    #ax.axvline(requiremin,color='black')
+    #ax.axvline(requiremax,color='black')
  
     # fill thickness list 
     ax.hist(dataDict.values(), bins=50, alpha=1, histtype="stepfilled",edgecolor='black')
@@ -69,40 +78,47 @@ def hist(dnames, key, arg = 'unspecified'):
     # set hist style
     plt.tick_params(labelsize=18)
     if arg is 'unspecified':
-        #ax.set_title(f'{key}',fontsize=18)
-        ax.set_xlabel(f'{key}',fontsize=18)
+        ax.set_title(f'{key}',fontsize=20)
+        #ax.set_xlabel(f'{key}',fontsize=18)
     else:
-        #ax.set_title(f'{key}-{arg}',fontsize=18)
-        ax.set_xlabel(f'{key}-{arg}',fontsize=18)
+        ax.set_title(f'{key}-{arg}',fontsize=20)
+        #ax.set_xlabel(f'{key}-{arg}',fontsize=18)
     ax.set_ylabel('events',fontsize=18)
 
     # show hist
-    #if arg is 'unspecified':
-        #plt.savefig(f'resultsHist/{key}.jpg')  #save as jpeg
-        #print(f'save as resultsHist/{key}.jpg')
-    #else:
-        #plt.savefig(f'resultsHist/{key}-{arg}.jpg')  #save as jpeg
-        #print(f'save as resultsHist/{key}-{arg}.jpg')
-    #plt.show()
+    if arg is 'unspecified':
+        plt.savefig(f'resultsHist/bare_{key}.jpg')  #save as jpeg
+        print(f'save as resultsHist/bare_{key}.jpg')
+    else:
+        plt.savefig(f'resultsHist/bare_{key}-{arg}.jpg')  #save as jpeg
+        print(f'save as resultsHist/bare_{key}-{arg}.jpg')
+    plt.show()
+    
 
 def run(dnames, args):
     if args.sensor:
-        hist(dnames, 'SENSOR', args.sensor)
+        if args.sensor =='X':
+            hist(dnames, 'SENSOR', 39.5, 39.55, args.sensor)
+        if args.sensor =='Y':
+            hist(dnames, 'SENSOR', 41.1, 41.15, args.sensor)
     elif args.fechips:
-        hist(dnames, 'FECHIPS', args.fechips)
-    elif args.fethick:
-        hist(dnames, 'FECHIP_THICKNESS')
-    elif args.barethick:
-        hist(dnames, 'BAREMODULE_THICKNESS')
-    elif args.senthick:
-        hist(dnames, 'SENSOR_THICKNESS')
+        if args.fechips == 'X':
+            hist(dnames, 'FECHIPS', 42.187, 42.257, args.fechips)
+        if args.fechips == 'Y':
+            hist(dnames, 'FECHIPS', 40.255, 40.322, args.fechips)
+    elif args.fe:
+        hist(dnames, 'FECHIP_THICKNESS', 153, 159)
+    elif args.bare:
+        hist(dnames, 'BAREMODULE_THICKNESS', 310, 330)
+    elif args.sen:
+        hist(dnames, 'SENSOR_THICKNESS', 146, 178)
     elif args.std:
         if args.std == 's':
-            hist(dnames, 'SENSOR_THICKNESS_STD_DEVIATION')
+            hist(dnames, 'SENSOR_THICKNESS_STD_DEVIATION',0,10)
         if args.std == 'f':
-            hist(dnames, 'FECHIP_THICKNESS_STD_DEVIATION')
+            hist(dnames, 'FECHIP_THICKNESS_STD_DEVIATION',0,10)
         if args.std == 'b':
-            hist(dnames, 'BAREMODULE_THICKNESS_STD_DEVIATION')
+            hist(dnames, 'BAREMODULE_THICKNESS_STD_DEVIATION',0,10)
     else:
         print('Error: No such Command. type option -h or --help')  
     
@@ -114,24 +130,14 @@ if __name__ == '__main__':
     # add argument
     parser.add_argument('-s','--sensor', help='SENSOR',choices=['X','Y'])
     parser.add_argument('-f','--fechips', help='FECHIPS',choices=['X','Y'])
-    parser.add_argument('--fethick', help='FECHIPS_THICKNESS',action='store_true')
-    parser.add_argument('--barethick', help='BAREMODULE_THICKNESS',action='store_true')
-    parser.add_argument('--senthick', help='SENSOR_THICKNESS', action='store_true')
+    parser.add_argument('--fe', help='FECHIPS_THICKNESS',action='store_true')
+    parser.add_argument('--bare', help='BAREMODULE_THICKNESS',action='store_true')
+    parser.add_argument('--sen', help='SENSOR_THICKNESS', action='store_true')
     parser.add_argument('--std', help='THICKNESS_STD_DEVIATION FeChip, Bare, Sensor',choices=['f','b','s'])
     args = parser.parse_args()  # analyze arguments
 
     # assign read file path
-    files = glob.glob("/nfs/space3/aoki/Metrology/kekdata/Metrology/BARE_MODULE/20UPG*")
-    dnames = []  # define path list
-    for fn in files:
-        filepath = fn + '/BAREMODULERECEPTION'  # stage
-        if os.path.exists(filepath) :  
-            scanNumList = glob.glob(filepath+'/*')
-            scanNumList.sort()
-            count = len(scanNumList)
-            dnames.append(scanNumList[count-1])
-    print(f'counts of module : {len(dnames)}')
-
+    dnames = data_baremodule.getFilelist()
     # run
     run(dnames,args)
     

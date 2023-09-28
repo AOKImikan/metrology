@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import argparse
-from myModules import data_module
+from myModules import data_pcb
 
 # get key extract by values
 def getNGSN(dic, threshold):
@@ -31,30 +31,14 @@ def LoadData(dn):
     return results, sn
 
 # make hist
-def hist(dnames, key,requiremin, requiremax, arg = 8):
+def hist(dnames, key,requiremin, requiremax):
     dataDict = {}
-    if arg < 8:    # multiple values and individual
-        for dn in dnames:
-            results = LoadData(dn)[0]
-            sn = LoadData(dn)[1]
-            if len(results)>0:
-                dataDict[sn]=results[key][arg]
-
-    elif arg > 8:  # multiple values and all
-        for dn in dnames:
-            results = LoadData(dn)[0]
-            sn = LoadData(dn)[1]
-            if len(results)>0:
-                for val in results[key]:
-                    dataDict[sn]=val
-
-    else:          # one value (arg=8)
-        for dn in dnames:
-            results = LoadData(dn)[0]
-            sn = LoadData(dn)[1]
-            if len(results)>0:
-                dataDict[sn]=results[key]
-
+    for dn in dnames:
+        results = LoadData(dn)[0]
+        sn = LoadData(dn)[1]
+        if len(results)>0:
+            dataDict[sn]=results[key]
+    
     # print NG data            
     std = np.std(list(dataDict.values()))  # get data value std deviation
     SNlist = getNGSN(dataDict,std*2)  # get bad serial number list
@@ -74,21 +58,13 @@ def hist(dnames, key,requiremin, requiremax, arg = 8):
     
     # set hist style
     plt.tick_params(labelsize=18)
-    if arg < 8:
-        ax.set_title(f'{key}_{arg}',fontsize=20)
-        #ax.set_xlabel(f'{key}_{arg}',fontsize=18)
-    else:
-        ax.set_title(f'{key}',fontsize=20)
-        #ax.set_xlabel(f'{key}',fontsize=18) 
+    ax.set_title(f'{key}',fontsize=20)
+    #ax.set_xlabel(f'{key}',fontsize=18) 
     ax.set_ylabel('events',fontsize=18)
 
     # show hist
-    if arg < 8:
-        plt.savefig(f'resultsHist/module_asem_{key}_{arg}.jpg')  #save as jpeg
-        print(f'save as resultsHist/module_assem_{key}_{arg}.jpg')
-    else:
-        plt.savefig(f'resultsHist/module_assem_{key}.jpg')  #save as jpeg
-        print(f'save as resultsHist/module_assem_{key}.jpg')
+    plt.savefig(f'resultsHist/pcb_population_{key}.jpg')  #save as jpeg
+    print(f'save as resultsHist/pcb_population_{key}.jpg')
     plt.show()
 
 def plot(dnames):
@@ -116,27 +92,18 @@ def plot(dnames):
     plt.show()
 
 def run(dnames, args):
-    
-    if args.TR:
-        if args.TR == '0':
-            hist(dnames, 'PCB_BAREMODULE_POSITION_TOP_RIGHT', 2.162, 2.262, 0)
-        if args.TR == '1':
-            hist(dnames, 'PCB_BAREMODULE_POSITION_TOP_RIGHT', 0.7, 0.8, 1)
-    elif args.BL:
-        if args.BL == '0':
-            hist(dnames, 'PCB_BAREMODULE_POSITION_BOTTOM_LEFT', 2.162, 2.262, 0)
-        if args.BL == '1':
-            hist(dnames, 'PCB_BAREMODULE_POSITION_BOTTOM_LEFT', 0.7, 0.8, 1)
-    elif args.aveThick:
-        hist(dnames, 'AVERAGE_THICKNESS',0.56,0.58, int(args.aveThick))
-    elif args.stdThick:
-        hist(dnames, 'STD_DEVIATION_THICKNESS', int(args.stdThick))
-    elif args.angle:
-        hist(dnames, 'ANGLE_PCB_BM', -0.01, 0.01)
-    elif args.pickup:
-        hist(dnames, 'THICKNESS_VARIATION_PICKUP_AREA')
+    if args.X:
+        hist(dnames, 'X_DIMENSION', 39.5, 39.6)
+    elif args.Y:
+        hist(dnames, 'Y_DIMENSION',40.5,40.7)
+    elif args.thick:
+        hist(dnames, 'AVERAGE_THICKNESS_FECHIP_PICKUP_AREAS',0.2,0.3)
+    elif args.dmt:
+        hist(dnames, 'DIAMETER_DOWEL_HOLE_A', -0.01, 0.01)
+    elif args.width:
+        hist(dnames, 'WIDTH_DOWEL_SLOT_B', 0.02, 0.03)
     elif args.power:
-        hist(dnames, 'THICKNESS_INCLUDING_POWER_CONNECTOR', 1.521, 1.761)
+        hist(dnames, 'AVERAGE_THICKNESS_POWER_CONNECTOR', 1.521, 1.761)
     elif args.HVcapa:
         hist(dnames, 'HV_CAPACITOR_THICKNESS', 1.701, 2.111)
     else:
@@ -148,22 +115,24 @@ if __name__ == '__main__':
     # make parser
     parser = argparse.ArgumentParser()
     # add argument
-    parser.add_argument('--TR', help='PCB_BAREMODULE_POSITION_TOP_RIGHT',choices=['0','1','10'])
-    parser.add_argument('--BL', help='PCB_BAREMODULE_POSITION_BOTTOM_LEFT',choices=['0','1','10'])
-    parser.add_argument('--aveThick', help='AVERAGE_THICKNESS',choices=['0','1','2','3','10'])
-    parser.add_argument('--stdThick', help='STD_DEVIATION_THICKNESS',choices=['0','1','2','3','10'])
-    parser.add_argument('--angle', help='ANGLE_PCB_BM', action='store_true')
-    parser.add_argument('--pickup', help='THICKNESS_VARIATION_PICKUP_AREA',
-                        action='store_true')
-    parser.add_argument('--power', help='THICKNESS_INCLUDING_POWER_CONNECTOR',
+    parser.add_argument('-X', help='X_DIMENSION',action='store_true')
+    parser.add_argument('-Y', help='Y_DIMENSION',action='store_true')
+    parser.add_argument('--thick', help='AVERAGE_THICKNESS_FECHIP_PICKUP_AREAS',action='store_true')
+    parser.add_argument('--dmt', help='DIAMETER_DOWEL_HOLE_A', action='store_true')
+    parser.add_argument('--width', help='WIDTH_DOWEL_SLOT_B', action='store_true')
+    parser.add_argument('--power', help='AVERAGE_THICKNESS_POWER_CONNECTOR',
                         action='store_true')
     parser.add_argument('--HVcapa', help='HV_CAPACITOR_THICKNESS',
                         action='store_true')
+    
     args = parser.parse_args()  # analyze arguments
     
     # assign read file path 
-    dnames = data_module.getFilelist()
-           
+    dnames = data_pcb.getFilelist('PCB_POPULATION')
+    # PCB_POPULATION
+    # PCB_RECEPTION
+    # PCB_RECEPTION_MODULE_SITE
+    
     print(f'counts of module : {len(dnames)}')
 
     # run main
