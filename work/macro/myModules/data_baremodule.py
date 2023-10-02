@@ -10,6 +10,12 @@ def getFilelist():
     files = glob.glob("/nfs/space3/aoki/Metrology/kekdata/Metrology/BARE_MODULE/20UPG*")
 
     specialSNs = {
+        '20UPGB42399001':'n',
+        '20UPGB42399002':'n',
+        '20UPGB42399003':'n'
+     #   '20UPGB42305019':'n',
+      #  '20UPGB42302024':'n',
+       # '20UPGB42302005':'n'
     }
     for k,v in specialSNs.items():
         dnames.append(specialize(k,v))

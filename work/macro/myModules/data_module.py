@@ -11,11 +11,14 @@ def getFilelist():
     files = glob.glob("/nfs/space3/aoki/Metrology/HR/MODULE/20UPGM*")
 
     specialSNs = {
-        '20UPGM22601026':'001',
+        '20UPGM22601066':'nan',
         '20UPGM22601034':'001',
         '20UPGM22601049':'005',
-        '20UPGM22110427':'003',
-        '20UPGM22601066':'n'        
+        '20UPGM22601027':'001',  # only 001
+        '20UPGM22601038':'001',  # only 001
+        '20UPGM22601026':'001',  # 001 is bad data
+        '20UPGM22601030':'001',  # only 001
+        '20UPGM22601045':'001',  # only 001
     }
     for k,v in specialSNs.items():
         dnames.append(specialize(k,v))

@@ -18,6 +18,28 @@ def getNGSN(dic, threshold):
     else:
         return None
 
+def requiredNGSN(key, dic, reqmin, reqmax):
+    std = np.std(list(dic.values()))  # get data value std deviation
+    mean = np.mean(list(dic.values()))  # get data value mean
+    minimum = np.amin(list(dic.values()))  # get data value min
+    maximum = np.amax(list(dic.values()))  # get data value max
+    quantity = len(dic)
+
+    nglist = {}
+    ngnumber = 0
+    for k,v in dic.items():
+        if v < reqmin or v > reqmax:
+            nglist[k] = v
+            ngnumber += 1
+
+    values = [quantity, minimum, maximum, mean, std, reqmin, reqmax, ngnumber/len(dic)]
+    rows = ['Qty', 'min', 'max', 'mean', 'std', 'requirement min', 'requirement max', 'NG ratio']
+    summary = pd.DataFrame(values, index=rows, columns=[key])
+    ngSN = pd.DataFrame(nglist.keys(), columns=[key])
+    ngSN = pd.concat([ngSN,pd.DataFrame(nglist.values())],axis=1)
+    
+    return summary, ngSN
+
 # db.json -> results and somponent serial number
 def LoadData(dn):
     appdata = None
@@ -31,81 +53,66 @@ def LoadData(dn):
     return results, sn
 
 # make hist
-def hist(dnames, key,requiremin, requiremax):
+def hist(dnames, key, require, binrange, unit):
     dataDict = {}
     for dn in dnames:
         results = LoadData(dn)[0]
         sn = LoadData(dn)[1]
         if len(results)>0:
             dataDict[sn]=results[key]
-    
-    # print NG data            
-    std = np.std(list(dataDict.values()))  # get data value std deviation
-    SNlist = getNGSN(dataDict,std*2)  # get bad serial number list
-    if SNlist:  # NGSN is exist or not
-        for k in SNlist:
-            print(k,'  ',dataDict[k])  # print serial number and data value   
-    
+
+    # data summary
+    # save as dataframe
+    df = requiredNGSN(key, dataDict, require[0], require[1])
+  
     # define matplotlib figure
     fig = plt.figure(figsize=(8,7))
     ax = fig.add_subplot(1,1,1)
 
     # paint required area
-    ax.axvspan(requiremin, requiremax, color='yellow', alpha=0.5)
-    
-    # fill thickness list 
-    ax.hist(dataDict.values(), bins=50, alpha=1, histtype="stepfilled",edgecolor='black')
-    
+    ax.axvspan(require[0], require[1], color='yellow', alpha=0.5)
+      
+    # fill thickness list
+    bins = np.arange(np.amin(list(dataDict.values())),
+                     np.amax(list(dataDict.values())), binrange)
+    n = ax.hist(dataDict.values(), bins=bins, alpha=1, histtype="stepfilled",edgecolor='black')
+
+    # show text of required area
+    ax.text(require[0]-2*binrange, np.amax(n[0]), f'{require[0]}',
+            color='#ff5d00',size=14)
+    ax.text(require[1]-5*binrange, np.amax(n[0]), f'{require[1]}',
+            color='#ff5d00',size=14)
+
     # set hist style
     plt.tick_params(labelsize=18)
     ax.set_title(f'{key}',fontsize=20)
-    #ax.set_xlabel(f'{key}',fontsize=18) 
-    ax.set_ylabel('events',fontsize=18)
+    ax.set_xlabel(f'{unit}',fontsize=18,loc='right') 
+    ax.set_ylabel(f'events/{binrange}{unit}',fontsize=18,loc='top')
 
     # show hist
     plt.savefig(f'resultsHist/pcb_population_{key}.jpg')  #save as jpeg
     print(f'save as resultsHist/pcb_population_{key}.jpg')
     plt.show()
 
-def plot(dnames):
-    fig = plt.figure(figsize=(8,7))
-    ax = fig.add_subplot(1,1,1)
-
-    TRlistX,TRlistY = [],[]
-    BLlistX,BLlistY = [],[]
-    for dn in dnames:
-        results = LoadData(dn)
-        TR=results['PCB_BAREMODULE_POSITION_TOP_RIGHT']
-        BL=results['PCB_BAREMODULE_POSITION_BOTTOM_LEFT']
-        TRlistX.append(results['PCB_BAREMODULE_POSITION_TOP_RIGHT'][0])
-        TRlistY.append(results['PCB_BAREMODULE_POSITION_TOP_RIGHT'][1])
-        BLlistX.append(results['PCB_BAREMODULE_POSITION_BOTTOM_LEFT'][0])
-        BLlistY.append(results['PCB_BAREMODULE_POSITION_BOTTOM_LEFT'][1])
-
-        # set plot point    
-        ax.scatter(BL[0],BL[1],color="#007fff")      
-    ax.set_title('PCB_BAREMODULE_POSITION_BOTTOM_LEFT')
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
-   
-    # draw plot
-    plt.show()
+    return df
 
 def run(dnames, args):
     if args.X:
-        hist(dnames, 'X_DIMENSION', 39.5, 39.6)
+        hist(dnames, 'X_DIMENSION', [39.5, 39.6], 0.005, 'mm')
     elif args.Y:
-        hist(dnames, 'Y_DIMENSION',40.5,40.7)
+        hist(dnames, 'Y_DIMENSION', [40.2, 40.4], 0.005, 'mm')
     elif args.thick:
-        hist(dnames, 'AVERAGE_THICKNESS_FECHIP_PICKUP_AREAS',0.2,0.3)
+        hist(dnames, 'AVERAGE_THICKNESS_FECHIP_PICKUP_AREAS',
+             [0.2, 0.25], 0.001, 'mm')
     elif args.dmt:
-        hist(dnames, 'DIAMETER_DOWEL_HOLE_A', -0.01, 0.01)
+        hist(dnames, 'DIAMETER_DOWEL_HOLE_A',)
     elif args.width:
         hist(dnames, 'WIDTH_DOWEL_SLOT_B', 0.02, 0.03)
     elif args.power:
-        hist(dnames, 'AVERAGE_THICKNESS_POWER_CONNECTOR', 1.521, 1.761)
+        hist(dnames, 'AVERAGE_THICKNESS_POWER_CONNECTOR',
+             [1.521, 1.761], 0.002, 'mm')
     elif args.HVcapa:
-        hist(dnames, 'HV_CAPACITOR_THICKNESS', 1.701, 2.111)
+        hist(dnames, 'HV_CAPACITOR_THICKNESS', [1.701, 2.111], 0.004, 'mm')
     else:
         print('Error: No such Command. type option -h or --help')  
     
