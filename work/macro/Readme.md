@@ -31,7 +31,7 @@ how to use these macro
 + -a --asic
 + -f --flex
 + -e --extract
-+ --hist
++ --hist  
 Asic,FlexのFmarkについて、写真の中央と検出点をプロットする。  
 zの座標が大きく外れている（調整可能、0.03になっている）場合、検出点を赤色で表示し、ImagePathをprintする。
 
