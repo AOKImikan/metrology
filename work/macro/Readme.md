@@ -33,11 +33,11 @@ how to use these macro
 + -e --extract
 + --hist  
 Asic,FlexのFmarkについて、写真の中央と検出点をプロットする。  
-zの座標が大きく外れている（調整可能、0.03になっている）場合、検出点を赤色で表示し、ImagePathをprintする。
+zの座標が大きく外れている（偏差が0.03より大きい）場合、検出点を赤色で表示し、ImagePathをprintする。
 
 extractは、stdがthreshold（第二引数）より大きいtagを抽出してdataframeにする。
 
-histは、各tagのstdをヒストグラムにする。
+histは、各tagのstdをヒストグラムにする。各tagのstdについて、csvで保存。
 
 ## zHist
 ## margin
