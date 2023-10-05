@@ -1,22 +1,25 @@
 #!/usr/bin/env python3
 import os
 import pickle
+import time
 import tkinter as tk
 from tkinter import ttk
 import pmm
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from myModules import data_pcb
 
 #data.pickle -> ScanProcessor
 def LoadData(dn):
     appdata = None
+    sp = None
     if os.path.exists(dn):
         with open(f'{dn}/data.pickle', 'rb') as fin:
             appdata = pickle.load(fin)
             appdata = appdata.deserialize()
-    if appdata:
-        sp = appdata.getScanProcessor('ITkPixV1xModule.Size')
+            #print(appdata.scanNames())
+            sp = appdata.getScanProcessor('ITkPixV1xFlex.Size')
     return sp
 
 #analysis -> dataframe
@@ -27,9 +30,11 @@ def analyDataCnvDataFrame(SN,qc,num,dn):
 
     #open pickle
     sp =LoadData(dn)
-    patternAnalysis = sp.analysisList[0]
-    sizeAnalysis = sp.analysisList[1]
-
+    if sp:
+        patternAnalysis = sp.analysisList[0]
+        sizeAnalysis = sp.analysisList[1]
+    else:
+        return None
     ##repeat##
     #pattern analysis result
     for k,v in patternAnalysis.outData.items():
@@ -42,18 +47,22 @@ def analyDataCnvDataFrame(SN,qc,num,dn):
             qclist.append(qc)   #qc stage
             numlist.append(num) #scan number
             tags.append(tag)    #tag
-            xlist.append(v.position[0]) #detect x
-            ylist.append(v.position[1]) #detect y
-    
-    #make dataframe with serial number
-    df=pd.DataFrame({'serial_number':snlist})
-    #add data to dataframe
-    df['qc_stage']=qclist
-    df['scan_num']=numlist
-    df['tags']=tags
-    df['detect_x']=xlist
-    df['detect_y']=ylist
-    
+            if v is None:
+                xlist.append(None)  # Fill NaN
+                ylist.append(None)  # Fill NaN
+            else:
+                xlist.append(v.position[0])  # Fill detect x
+                ylist.append(v.position[1])  # Fill detect y
+                
+                #make dataframe with serial number
+                df=pd.DataFrame({'serial_number':snlist})
+                #add data to dataframe
+                df['qc_stage']=qclist
+                df['scan_num']=numlist
+                df['tags']=tags
+                df['detect_x']=xlist
+                df['detect_y']=ylist
+
     return df
 
 #scanData -> dataframe
@@ -64,7 +73,10 @@ def scanPointCnvDataframe(SN,qc,num,dn):
 
     #open pickle
     sp = LoadData(dn)
-    i = 0
+    if sp:
+        i = 0
+    else:
+        return None
     while i < len(sp.scanData.points):
         #add data to list
         snlist.append(SN)   #serial number
@@ -91,28 +103,29 @@ def scanPointCnvDataframe(SN,qc,num,dn):
     df['scan_z']=scanList_z
     df['tags']=scanList_tags
     df['image_path']=scanList_imPath
-    
+
     return df
 
 #get serial number from directory path
 def extractSN(dn):
     words = dn.split('/')
-    print('SN = ',words[9])
-    return words[9]
-
-#get Metrology number from directory path
-def extractMetrologyNum(dn):
-    words = dn.split('/')
-    num = words[11]
-    print("Number=",num)
-    return num
+    sn = words[8]
+    print('SN = ',sn)
+    return sn
 
 #get QC stage from directory path
 def extractQcStage(dn):
     words = dn.split('/')
-    qcstage = words[10]
-    print("qcStage=",qcstage)
+    qcstage = words[9]
+    #print("qcStage=",qcstage)
     return qcstage
+
+#get Metrology number from directory path
+def extractMetrologyNum(dn):
+    words = dn.split('/')
+    num = words[10]
+    print("Number=",num)
+    return num
 
 def run(dnames):
     #define the aimed dataframe
@@ -133,22 +146,26 @@ def run(dnames):
         #concat each serial numbers
         analyDFs = pd.concat([analyDFs,analydf],ignore_index=True)
         scanDFs = pd.concat([scanDFs,scandf],ignore_index=True)
-
+    print(analyDFs)
+    print(scanDFs)
     #save the created data
-    analyDFs.to_pickle("data/AnalysisData.pkl")
-    scanDFs.to_pickle("data/ScanData.pkl")
-    analyDFs.to_csv("data/AnalysisData.csv")
-    scanDFs.to_csv("data/ScanData.csv")
+    analyDFs.to_pickle("data/PCB_AnalysisData.pkl")
+    scanDFs.to_pickle("data/PCB_ScanData.pkl")
+    analyDFs.to_csv("data/PCB_AnalysisData.csv")
+    scanDFs.to_csv("data/PCB_ScanData.csv")
 
-    print("save data file")
+    print("save as data/PCB_AnalysisData")
 
 if __name__ == '__main__':
-    dnames = [
-        '/nfs/space3/tkohno/atlas/ITkPixel/Metrology/HR/MODULE/20UPGM22601020/MODULE_ASSEMBLY/003',
-        '/nfs/space3/tkohno/atlas/ITkPixel/Metrology/HR/MODULE/20UPGM22601015/MODULE_ASSEMBLY/002',
-        '/nfs/space3/tkohno/atlas/ITkPixel/Metrology/HR/MODULE/20UPGM22601016/MODULE_ASSEMBLY/002',
-        '/nfs/space3/tkohno/atlas/ITkPixel/Metrology/HR/MODULE/20UPGM22110427/MODULE_ASSEMBLY/004',
-        '/nfs/space3/tkohno/atlas/ITkPixel/Metrology/HR/MODULE/20UPGM22101021/MODULE_ASSEMBLY/001',
-        '/nfs/space3/tkohno/atlas/ITkPixel/Metrology/HR/MODULE/20UPGM22601021/MODULE_ASSEMBLY/003'
-    ]   
+    t1 = time.time()
+
+    dnames = data_pcb.getFilelist('PCB_POPULATION')
+    
     run(dnames)
+    print(f'counts of module : {len(dnames)}')
+    
+    t2 = time.time()
+    elapsed_time = t2-t1
+    print(f'run time : {elapsed_time}')
+    
+ 

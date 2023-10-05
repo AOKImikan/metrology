@@ -14,7 +14,9 @@ if __name__ == '__main__':
         ['Y_DIMENSION', [40.2, 40.4], 0.005, 'mm'],
         ['AVERAGE_THICKNESS_FECHIP_PICKUP_AREAS',[0.15, 0.25], 0.001, 'mm'],
         ['AVERAGE_THICKNESS_POWER_CONNECTOR', [1.521, 1.761], 0.002, 'mm'],
-        ['HV_CAPACITOR_THICKNESS', [1.701, 2.111], 0.004, 'mm']
+        ['HV_CAPACITOR_THICKNESS', [1.701, 2.111], 0.004, 'mm'],
+        ['DIAMETER_DOWEL_HOLE_A',[3.0,3.1], 0.005, 'mm'],
+        ['WIDTH_DOWEL_SLOT_B',[3.0,3.1], 0.005, 'mm']
     ]
     # assign read file path
     dnames = data_pcb.getFilelist('PCB_POPULATION')

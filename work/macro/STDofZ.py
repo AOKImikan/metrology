@@ -2,61 +2,62 @@
 import os
 import pickle
 import sys
+import time
 import tkinter as tk
 from tkinter import ttk
 import pmm
 import numpy as np
 import pandas as pd
+import argparse
 import matplotlib.pyplot as plt
 
 def extractLargeZ(scanData,tag):
-    #group scandata dataframe by tags
+    # group scandata dataframe by tags
     pltdata = scanData.groupby(['tags'])
-    #extract by specified tag
-    extractData = pltdata.get_group((tag[1]))
+    # extract by specified tag
+    extractData = pltdata.get_group((tag))
 
-    #get standard deviation
+    # get standard deviation
     std = extractData['scan_z'].std()
     mean = extractData['scan_z'].mean()
     print('std = ',std)
 
-    #define return list
+    # define return list
     NGSN = []
     
-    #extractData 1 row roop
+    # extractData 1 row roop
     i = 0
     while i<len(extractData):
-        #extract 1 row (dataframe -> series)
+        # extract 1 row (dataframe -> series)
         rowi = extractData.iloc[i]
         # z > standard deviation?
         if abs(rowi['scan_z']-mean) > 0.03:
-            #print NG serial number
+            # print NG serial number
             print('NG SN ', rowi['image_path'])
             NGSN.append(rowi['serial_number'])
         i += 1
     return NGSN
 
 def plotPoint(scanData, anaData, tagName):    
-    #group scandata dataframe by tags
+    # group scandata dataframe by tags
     grouptag = scanData.groupby(['tags'])
    
-    #extract by specified tag
-    extractData = grouptag.get_group((tagName[1]))
-    #print(extractData)
-
-    #group analysis data by tags
-    grouptag_ana = anaData.groupby(['tags'])
-    #extract by specified tag
-    extractData_ana = grouptag_ana.get_group((tagName[1]))
+    # extract by specified tag
+    extractData = grouptag.get_group((tagName))
     
-    #define matplotlib figure
+    # group analysis data by tags
+    grouptag_ana = anaData.groupby(['tags'])
+    # extract by specified tag
+    extractData_ana = grouptag_ana.get_group((tagName))
+    
+    # define matplotlib figure
     fig = plt.figure(figsize=(10,9))
     ax = fig.add_subplot(1,1,1)
 
-    ax.set_title(tagName[1])
+    ax.set_title(tagName)
    
-    #set plot area
-    #set image edge
+    # set plot area
+    # set image edge
     dx=0.57
     dy=0.38
     right = extractData['scan_x'].iloc[1]+dx
@@ -68,27 +69,26 @@ def plotPoint(scanData, anaData, tagName):
     ax.axhline(top, color="#10f000",lw=1)
     ax.axhline(botom, color="#10f000",lw=1)
     
-    #add point at center of photo
+    # add point at center of photo
     ax.scatter(extractData['scan_x'].iloc[1],extractData['scan_y'].iloc[1],
                color="#10f000", marker="x")
 
-    #large difference between scan z and average z
-    #NG serial number
+    # large difference between scan z and average z
+    # NG serial number 
     NGsn = extractLargeZ(scanData,tagName)
-    
-    ##set plot point##
+
+    # set point
     for sn in extractData_ana['serial_number']:
         name = 'serial_number==\"{}\"'.format(sn)
         x = extractData_ana.loc[extractData_ana.query(name).index[0], 'detect_x']
         y = extractData_ana.loc[extractData_ana.query(name).index[0], 'detect_y']
 
         if len(NGsn)>0:
-            ##if serial number = NG serial number 
-            if sn in NGsn:
-                #add detected point as red
+            if sn in NGsn:  # if serial number = NG serial number 
+                # add detected point as red
                 ax.scatter(x,y,color="#ff0000", label='large deviation of z')
-            else:
-                #add detected point as green
+            else:  # normal z
+                # add detected point as green
                 ax.scatter(x,y,color="#007fff")
         else:
             #add detected point as green
@@ -115,30 +115,32 @@ def extractMargin(scandata, analydata):
 
 #show all tags std hist
 def HistStd(scanData):
-    #group scandata dataframe by tags
+    # group scandata dataframe by tags
     grouptag = scanData.groupby(['tags'])
-    #get std x,y,z
+    # get std x,y,z
     stdDF = grouptag.std()
+    # save
     stdDF.to_csv('data/scandataSTD.csv')
-    #get std z
+    # get std z
     stdlist = stdDF['scan_z']
 
-    #define matplotlib figure
+    # define matplotlib figure
     fig = plt.figure(figsize=(10,9))
     ax = fig.add_subplot(1,1,1)
-    #fill std list 
+    # fill std list 
     ax.hist(stdlist, bins=50)
 
     ax.set_title('scan data z standard deviation')
     ax.set_xlabel('std')
     ax.set_ylabel('number of tags')
-    #show hist
+
+    # show hist
     plt.show()
 
 def extractStd(scanData, threshold):
-    #group scandata dataframe by tags
+    # group scandata dataframe by tags
     grouptag = scanData.groupby(['tags'])
-    #get std x,y,z
+    # get std x,y,z
     stdDF = grouptag.std()
 
     largeStd = stdDF[stdDF.scan_z > threshold]
@@ -146,27 +148,60 @@ def extractStd(scanData, threshold):
         
 def run(scanData, anaData, args):
     #####extractMargin(scanData, anaData)
-    #command argment is true
-    if len(args)==3:
-        com = args[2]
-        if com=='exStd':
-            #show tag and scan xyz if large std
-            extractStd(scanData, 0.03)
-        if com=='histStd':
-            #std histgram
-            HistStd(scanData)
-    #none command
-    if len(args)==2:
-        #plot scan point with image center
-        plotPoint(scanData, anaData, args)
+    if args.asic:
+        # plot scan point with image center
+        if args.asic=='TL':
+            plotPoint(scanData, anaData, 'AsicFmarkTL')
+        if args.asic=='TR':
+            plotPoint(scanData, anaData, 'AsicFmarkTR')
+        if args.asic=='BL':
+            plotPoint(scanData, anaData, 'AsicFmarkBL')
+        if args.asic=='BR':
+            plotPoint(scanData, anaData, 'AsicFmarkBR')
+
+    if args.flex:
+        # plot scan point with image center
+        if args.flex=='TL':
+            plotPoint(scanData, anaData, 'FmarkTL')
+        if args.flex=='TR':
+            plotPoint(scanData, anaData, 'FmarkTR')
+        if args.flex=='BL':
+            plotPoint(scanData, anaData, 'FmarkBL')
+        if args.flex=='BR':
+            plotPoint(scanData, anaData, 'FmarkBR')
+
+    if args.extract:
+        # show tag and scan xyz if large std
+        extractStd(scanData, 0.03)
+        
+    if args.hist:
+        # std histgram
+        HistStd(scanData)
     
 if __name__ == '__main__':
-    #get argument
-    args = sys.argv
-    #open data as dataframe
-    with open(f'data/ScanData.pkl', 'rb') as fin:
+    t1 = time.time()  # get initial timestamp
+
+    # make parser
+    parser = argparse.ArgumentParser()
+    # add argument
+    parser.add_argument('-a','--asic', help='Asic fiducial mark',
+                        choices=['TL','TR','BL','BR'])
+    parser.add_argument('-f','--flex', help='Flex fiducial mark',
+                        choices=['TL','TR','BL','BR'])
+    parser.add_argument('-e','--extract', help='extract', action='store_true')
+    parser.add_argument('--hist', help='show all tags std of z histgram', action='store_true')
+
+    args = parser.parse_args()  # analyze arguments
+    
+    # assign read file path 
+    with open(f'data/MODULE_ScanData.pkl', 'rb') as fin:
         scanData = pickle.load(fin)
-    with open(f'data/AnalysisData.pkl', 'rb') as fin:
+    with open(f'data/MODULE_AnalysisData.pkl', 'rb') as fin:
         analysisData = pickle.load(fin)
-        
+
+    # run main
     run(scanData, analysisData, args)    
+
+    t2 = time.time()  # get final timestamp
+    elapsed_time = t2-t1  # calculate run time
+    print(f'run time : {elapsed_time}')  

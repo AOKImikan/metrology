@@ -92,7 +92,7 @@ def hist(dnames, key, require, binrange, unit):
     # show hist
     plt.savefig(f'resultsHist/pcb_population_{key}.jpg')  #save as jpeg
     print(f'save as resultsHist/pcb_population_{key}.jpg')
-    plt.show()
+    #plt.show()
 
     return df
 
@@ -105,9 +105,9 @@ def run(dnames, args):
         hist(dnames, 'AVERAGE_THICKNESS_FECHIP_PICKUP_AREAS',
              [0.2, 0.25], 0.001, 'mm')
     elif args.dmt:
-        hist(dnames, 'DIAMETER_DOWEL_HOLE_A',)
+        hist(dnames, 'DIAMETER_DOWEL_HOLE_A',[3.0,3.1], 0.005, 'mm')
     elif args.width:
-        hist(dnames, 'WIDTH_DOWEL_SLOT_B', 0.02, 0.03)
+        hist(dnames, 'WIDTH_DOWEL_SLOT_B',[3.0,3.1], 0.005, 'mm')
     elif args.power:
         hist(dnames, 'AVERAGE_THICKNESS_POWER_CONNECTOR',
              [1.521, 1.761], 0.002, 'mm')
@@ -121,6 +121,7 @@ if __name__ == '__main__':
 
     # make parser
     parser = argparse.ArgumentParser()
+
     # add argument
     parser.add_argument('-X', help='X_DIMENSION',action='store_true')
     parser.add_argument('-Y', help='Y_DIMENSION',action='store_true')

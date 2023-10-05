@@ -91,7 +91,7 @@ def scanPointCnvDataframe(SN,qc,num,dn):
         scanList_y.append(point.get('y'))  # y
         scanList_z.append(point.get('z'))  # z
         scanList_tags.append(point.get('tags')[0])      # tag
-        print(point.get('tags'))
+        #print(point.get('tags'))
         scanList_imPath.append(point.get('imagePath'))  # image path
         i += 1  # repeat parameter
         
@@ -150,12 +150,12 @@ def run(dnames):
         scanDFs = pd.concat([scanDFs,scandf],ignore_index=True)
 
     # save the created data
-    #analyDFs.to_pickle("data/BAREMODULE_AnalysisData.pkl")
-    #scanDFs.to_pickle("data/BAREMODULE_ScanData.pkl")
+    analyDFs.to_pickle("data/BAREMODULE_AnalysisData.pkl")
+    scanDFs.to_pickle("data/BAREMODULE_ScanData.pkl")
     analyDFs.to_csv("data/test_BAREMODULE_AnalysisData.csv")
     scanDFs.to_csv("data/test_BAREMODULE_ScanData.csv")
-    #print("save data file : data/BAREMODULE_AnalysisData")
-    #print("save data file : data/BAREMODULEscanData")
+    print("save data file : data/BAREMODULE_AnalysisData")
+    print("save data file : data/BAREMODULEscanData")
 
 if __name__ == '__main__':
     t1 = time.time()

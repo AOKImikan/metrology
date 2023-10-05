@@ -27,4 +27,5 @@ def getFilelist(stage):
             scanNumList.sort()
             count = len(scanNumList)
             dnames.append(scanNumList[count-1])
+
     return dnames

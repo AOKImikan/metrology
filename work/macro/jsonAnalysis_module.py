@@ -10,9 +10,9 @@ from myModules import data_module
 if __name__ == '__main__':
     t1 = time.time()  # get initial timestamp
     resultsKeyList = [
-        ['PCB_BAREMODULE_POSITION_TOP_RIGHT', [2.162, 2.262], 0.004, 'mm',0],
+        ['PCB_BAREMODULE_POSITION_TOP_RIGHT', [2.112, 2.312], 0.004, 'mm',0],
         ['PCB_BAREMODULE_POSITION_TOP_RIGHT', [0.65, 0.85],0.004, 'mm', 1],
-        ['PCB_BAREMODULE_POSITION_BOTTOM_LEFT', [2.162, 2.262], 0.004, 'mm', 0],
+        ['PCB_BAREMODULE_POSITION_BOTTOM_LEFT', [2.112, 2.312], 0.004, 'mm', 0],
         ['PCB_BAREMODULE_POSITION_BOTTOM_LEFT', [0.65, 0.85], 0.004, 'mm', 1],
         ['AVERAGE_THICKNESS', [0.52,0.62], 0.002, 'mm', 0],
         ['AVERAGE_THICKNESS', [0.52,0.62], 0.002, 'mm', 1],
