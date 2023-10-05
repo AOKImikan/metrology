@@ -66,6 +66,7 @@ if __name__ == '__main__':
     cfgFile = os.path.join(os.getenv('PMMDIR'), 'share/setups.cfg')
     appModel = pmm.AppModel()
     appModel.readSetups(cfgFile)
+    appModel.readSiteConfig(pmmConfig)
     
     if not args.batchMode:
         cssFile = os.path.join(os.getenv('PMMDIR'), 'share/pmappStyles.css')
@@ -75,13 +76,12 @@ if __name__ == '__main__':
 
         logger.info('Starting the main window')
 
-        window = pmm.PmmWindow(pmmConfig)
+        window = pmm.PmmWindow(pmmConfig, appModel)
         vmodel = pmm.ViewModel(view=window, model=appModel)
         handlers = pmm.Handlers(model=appModel, viewModel=vmodel)
         
         window.setHandlers(handlers)
         window.setup()
-        vmodel.initialize()
         
         window.show()
         app.exec()
@@ -100,5 +100,5 @@ if __name__ == '__main__':
             data[k] = v
         job.setSettings(data)
         job.run()
-        appModel.save(f'{job.componentName}.pickle')
+        appModel.save()
         

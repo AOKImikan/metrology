@@ -1,0 +1,32 @@
+ScanConfig:ITkPixBareModule_sizeFront_20230420
+ 22.000 -20.200 Jig
+-22.600 -20.200 Jig
+-22.000  20.000 Jig
+ 22.000  20.000 Jig
+ 20.200 -20.080 AsicL,AsicZ
+ 20.200 -10.000 AsicL,AsicZ
+ 20.200  -1.000 AsicL,AsicZ
+ 20.200  10.000 AsicL,AsicZ
+ 20.200  18.800 AsicL,AsicZ
+-21.400  10.000 AsicR,AsicZ
+-21.400  -1.000 AsicR,AsicZ
+-21.400 -10.000 AsicR,AsicZ
+-21.400 -20.800 AsicR,AsicZ
+ 18.600  19.200 SensorB,SensorZ
+ 10.000  19.200 SensorB,SensorZ
+  0.000  19.200 SensorB,SensorZ
+-10.000  19.200 SensorB,SensorZ
+-19.700  19.200 SensorB,SensorR,SensorZ
+-19.700 -21.400 SensorT,SensorZ
+-10.000 -21.400 SensorT,SensorZ
+  0.000 -21.400 SensorT,SensorZ
+ 10.000 -21.400 SensorT,SensorZ
+ 10.000  10.000 SensorZ
+  0.000  10.000 SensorZ
+-10.000  10.000 SensorZ
+ 10.000   0.000 SensorZ
+  0.000   0.000 SensorZ
+-10.000   0.000 SensorZ
+ 10.000 -10.000 SensorZ
+  0.000 -10.000 SensorZ
+-10.000 -10.000 SensorZ

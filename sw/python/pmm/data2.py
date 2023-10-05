@@ -37,6 +37,13 @@ class ImageNP:
             s = True
         return s
 
+    def readImage(self, fn=''):
+        if fn != '':
+            self.filePath = fn
+        image = cv2.imread(self.filePath, cv2.IMREAD_COLOR)
+        self.image = image
+        return image
+
     def readImageBW(self, fn=''):
         if fn != '':
             self.filePath = fn
@@ -48,7 +55,12 @@ class ImageNP:
         x = self.xyOffset[0] + col*self.pixelSize
         y = self.xyOffset[1] + (self.height/2 - row) * self.pixelSize
         return CvPoint(x, y)
-        
+
+    def physicalWidth(self):
+        return self.pixelSize*self.width
+
+    def physicalHeight(self):
+        return self.pixelSize*self.height
 
 class ScanData:
     def __init__(self, configPath, zoom, logPath):
@@ -90,7 +102,7 @@ class ScanData:
         return points
     
     def read(self):
-        logger.debug('Reading input data from %s (%s) (zoom=%d)' %\
+        logger.info('Reading input data from %s (%s) (zoom=%d)' %\
                      (self.logPath, self.configPath, self.zoom))
         log_ok = os.path.exists(self.logPath)
         config_ok = os.path.exists(self.configPath)
@@ -114,13 +126,17 @@ class ScanData:
             #print(v)
             dname = os.path.dirname(self.logPath)
             dataPoints = []
+            mm = 1.0E-3
             for x in v:
+                validMeasurement = True
+                if x[2] > (NEAREND*mm-0.01):
+                    validMeasurement = False
                 fname = x[3]
                 if fname != '':
                     i1 = fname.rfind('\\')
                     if i1>=0: fname = fname[i1+1:]
                     fname = os.path.join(dname, fname)
-                y = [x[0], x[1], 0.0, fname, True]
+                y = [x[0], x[1], 0.0, fname, validMeasurement]
                 dataPoints.append(y)
             #logger.debug(f'{dataPoints}')
         imageList = self.listImages()
@@ -142,10 +158,11 @@ class ScanData:
                 point.setImagePath(ipath)
                 point.setTags(cp.tags)
                 self.points.append(point)
+                logger.debug(f'  Scan input point {i} {ipath} {cp.tags}')
             logger.info('Read %d scan points from %s' %\
                      (len(self.points), self.logPath))
             for i, p in enumerate(self.points):
-                logger.debug(f"  point[{i}] {p.get('x'):5.3f}, {p.get('y'):5.3f}: {cp.tags}")
+                logger.debug(f"  point[{i}] {p.get('x'):5.3f}, {p.get('y'):5.3f}: {p.get('tags')}")
         else:
             logger.warning('Number of points mismatch (config/log): %d vs. %d' %\
                         (n1, n2))

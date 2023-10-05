@@ -5,15 +5,16 @@
 #------------------------------------------------------------------------
 import os
 import re
+import json
 import logging
 logger = logging.getLogger(__name__)
 
 import configparser
-    
+
 class KeyValueData:
     def __init__(self):
         self.data = {}
-        
+
     def setValue(self, key, value):
         keys = self.allowedKeys()
         if key in keys:
@@ -78,12 +79,13 @@ class ScanInput:
     def persKeys(self):
         return [ 'scanName', 'scanType', 'configs', 'defaultZoom',
                  'selectButtonTexts', 'analysisList' ]
-        
+    
 class SetupsConfig:
     def __init__(self):
         self.configFile = ''
         self.parser = configparser.ConfigParser()
         self.data = {}
+        self.baseWorkDir = os.getcwd()
 
     def persKeys(self):
         return ['configFile', 'data']
@@ -103,7 +105,10 @@ class SetupsConfig:
         return os.path.join(self.pmmDir(), 'share')
     
     def moduleDir(self):
-        return self.data['Basic']['ModuleDir']
+        mdir = self.data['Basic']['ModuleDir']
+        if not mdir.startswith('/'):
+            mdir = os.path.join(self.baseWorkDir, mdir)
+        return mdir
     
     def componentTypes(self):
         v = self.data['Basic']['ComponentTypes']
@@ -123,7 +128,7 @@ class SetupsConfig:
     def scanTypes(self, moduleType):
         keys = self.parser.sections()
         s = 'Scans.%s.' % moduleType
-        n1 = len(s)#'Scans.')
+        n1 = len(s)
         keys1 = filter(lambda x: x.startswith(s), keys)
         v = list(map(lambda x: x[n1:], keys1))
         return v
@@ -133,14 +138,13 @@ class SetupsConfig:
         #section = self.parser[s]
         #x = self.sectionToDict(section)
         x = self.data[s]
-        print(x)
         keys = x.keys()
         #
-        scanName, scanType, zoom = '', '', 20
+        scanName, sType, zoom = '', '', 20
         configs, analyses = [], []
         texts = []
         if 'Name' in keys: scanName = x['Name']
-        if 'Type' in keys: scanType = x['Type']
+        if 'Type' in keys: sType = x['Type']
         if 'Zoom' in keys: zoom = int(x['Zoom'])
         if 'ScanConfigs' in keys:
             configs = x['ScanConfigs']
@@ -179,7 +183,14 @@ class SetupsConfig:
             else:
                 x[key] = value
         return x
-    
+
+def readSiteConfig(fn):
+    data = {}
+    if os.path.exists(fn):
+        with open(fn, 'r') as fin:
+            data = json.load(fin)
+    return data
+
 class ScanPoint(KeyValueData):
     sAllowedKeys = [
         'index', 'x', 'y', 'z', 'error', 'zoom', 'imagePath', 'tags'

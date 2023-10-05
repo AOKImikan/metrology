@@ -38,7 +38,7 @@
 #--------------------------------------------------------------------
 
 import os
-from logging import getLogger
+import logging
 import threading
 import math
 import statistics
@@ -51,6 +51,8 @@ from pmm.params import *
 from pmm.model import *
 import pmm
 
+logger = logging.getLogger(__name__)
+
 class PatternRecScan:
     def __init__(self, componentType, moduleDir, 
                  scanResults, scanConfig, tagPatternMap, configStore=None):
@@ -59,10 +61,6 @@ class PatternRecScan:
         self.scanResults = scanResults
         self.scanConfig = scanConfig
         self.tagPatternMap = tagPatternMap
-        self.workDir = '.'
-        self.modulesDir = '.'
-        if configStore!=None:
-            self.workDir = configStore.workDir
         if not os.path.exists(self.moduleDir):
             logger.debug('Create module working directory %s' % self.moduleDir)
             os.mkdir(self.moduleDir)
@@ -122,9 +120,6 @@ class PatternRecImage:
         self.position1 = []
         self.manualCR = []
         #
-        self.image1b = None
-        self.imageP1Path = ''
-        self.imageP2Path = ''
         self.targetData = None
         self.imageValid = False
         # Large data
@@ -137,7 +132,6 @@ class PatternRecImage:
             'componentType', 'tag', 'name', 'offsetXY', 'imagePath',
             'zoom', 'moduleDir', 'patternValid', 'position0', 'position1',
             'manualCR',
-            'image1b', 'self.imageP1Path', 'self.imageP2Path',
             'targetData', 'imageValid', 
             ]
         return keys
@@ -154,13 +148,8 @@ class PatternRecImage:
     def addManualPoint(self, xy, cr):
         self.position1 = xy
         self.manualCR = cr
-        fpath2b = self.imageP1Path.replace('_p1b.jpg', '_p2b.jpg')
-        radius=10
-        color_point = (0, 255, 0)
-        img = cv2.imread(self.imageP1Path)
-        cv2.circle(img, cr, radius, color_point, thickness=-2)
-        cv2.imwrite(fpath2b, img)
-        self.imageP2Path = fpath2b
+        #fpath2b = self.imageP1Path.replace('_p1b.jpg', '_p2b.jpg')
+        img = self.genImage2()
         return img
         
     def clearLargeData(self):
@@ -201,9 +190,9 @@ class PatternRecImage:
             logger.warning('Cannot determine the search region')
             return pos
 
-        logger.debug('Search region: (%d, %d) -> (%d, %d)' % tuple(region))
+        #logger.debug('Search region: (%d, %d) -> (%d, %d)' % tuple(region))
         targetShape = self.targetData.ptype
-        logger.debug(str(region))
+        #logger.debug(str(region))
         if self.imageValid:
             params = paramStore.getParams(self.tag)
             wsum, tgap = params
@@ -212,9 +201,7 @@ class PatternRecImage:
             self.patterns = patterns
             if self.patterns.target:
                 self.patternValid = True
-            self.image1 = self.overlay(self.imageBW, region, patterns)
-            self.image1b = cv2.resize(self.image1, (600, 400) )
-            self.saveImage1()
+            self.image1 = self.overlay(region, patterns)
             cr = patterns.xy()
             offset = CvPoint(self.offsetXY[0], self.offsetXY[1])
             frame = ImageFrame(offset, self.zoom)
@@ -230,21 +217,7 @@ class PatternRecImage:
         self.position0 = pos
         return pos
 
-    def saveImage1(self):
-        fn1 = os.path.basename(self.imagePath)
-        fbase = os.path.join(self.moduleDir, fn1.replace('.jpg', ''))
-        fbase = '%s_%s' % (fbase, self.name)
-        fpath1 = '%s_p1.jpg' % fbase
-        fpath1b = '%s_p1b.jpg' % fbase
-        logger.info('Saving overlayed image %s (%s)' % (fpath1, fpath1b) )
-        cv2.imwrite(fpath1, self.image1)
-        cv2.imwrite(fpath1b, self.image1b)
-        self.imageP1Path = fpath1b
-        self.imageP2Path = fpath1b
-
-    def overlay(self, image, region, patterns):
-        #color_region = (100, 255, 0)
-        #color_point = (150, 255, 0)
+    def overlay(self, region, patterns):
         color_region = (0, 0, 255)
         color_point = (0, 0, 255)
         image1 = self.image0.copy()
@@ -266,15 +239,27 @@ class PatternRecImage:
                 logger.warning('  Unknown pattern type %s' % self.targetData.ptype)
         return image1
 
+    def genImage2(self):
+        image2 = None
+        if len(self.position1) == 2:
+            logger.info('Generate image 2')
+            radius=100
+            color_point = (0xe1, 0x69, 0x41)
+            image2 = self.image1.copy()
+            cr = tuple(map(lambda x: x*10, self.manualCR))
+            cv2.circle(image2, cr, radius, color_point, thickness=-1)
+        else:
+            logger.info('Use image1 as image2')
+            image2 = self.image1
+        return image2
+        
     def createImageP1(self):
         self.image1 = self.image0.copy()
-        self.image1b = cv2.resize(self.image1, (600, 400) )
-        self.saveImage1()
         
     def searchRegion(self):
         self.targetData = None
         region = []
-        logger.info(f'Get design of component type {self.componentType}')
+        #logger.info(f'Get design of component type {self.componentType}')
         module = createModule(self.componentType)
         if self.tag in module.targetData.keys():
             self.targetData = module.targetData[self.tag]
@@ -340,7 +325,7 @@ def patternMeanSigma(tag, patterns):
         mean, sigma = float(xmean), float(xsigma)
     elif tag.endswith('T') or tag.endswith('B'):
         mean, sigma = float(ymean), float(ysigma)
-    print('%s => ' % tag, mean, sigma, ' x:', xmean, xsigma, ' y:', ymean, ysigma)
+    #print('%s => ' % tag, mean, sigma, ' x:', xmean, xsigma, ' y:', ymean, ysigma)
     return (mean, sigma)
 
 def calculateX(pointsL, pointsR, tag=''):

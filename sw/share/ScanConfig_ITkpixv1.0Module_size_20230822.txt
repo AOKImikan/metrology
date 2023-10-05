@@ -3,10 +3,26 @@ ScanConfig:ITkpixv1Module_size_20230316
 -22.000  20.200  Jig
  22.000  20.200  Jig
  22.000 -20.200  Jig
-  5.700  -7.800  Pickup1
- 10.300  11.200  Pickup2
- -9.900   8.800  Pickup3
--10.000  -9.700  Pickup4
+  9.140   -9.800    Pickup1
+  9.140   -9.200    Pickup1
+  8.540   -9.200    Pickup1
+  8.540   -9.800    Pickup1
+  8.840   -9.500    Pickup1
+ 10.700   11.140    Pickup2
+ 10.700   11.740    Pickup2
+ 10.100   11.740    Pickup2
+ 10.100   11.140    Pickup2
+ 10.400   11.440    Pickup2
+ -9.500    8.700    Pickup3
+ -9.500    9.300    Pickup3
+ -9.500    9.300    Pickup3
+ -9.500    8.700    Pickup3
+ -9.800    9.000    Pickup3
+ -9.600   -9.800    Pickup4
+ -9.600   -9.200    Pickup4
+-10.200   -9.200    Pickup4
+-10.200   -9.800    Pickup4
+ -9.900   -9.500    Pickup4
 -18.900 -19.900  FmarkTR
 -18.900  18.700  FmarkBR
  18.700  18.700  FmarkBL

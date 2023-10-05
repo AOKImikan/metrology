@@ -1,9 +1,8 @@
 # pmm/__init__.py
 
 from .model import Point, Line, Circle
-from .design import Rd53aModule, ITkPixV11Module, ITkPixV1xFlex
 from .reader import Reader, ReaderB4v1
-from .tools import fitLine, fitPlane
+from .tools import fitLine, fitPlane, roundF
 from .prec import CvVector, CvPoint, CvLine, Vertex, Circle, PatternStore, ImageFrame
 from .gui import PmmWindow
 from .AppData import AppData
@@ -19,6 +18,6 @@ from .handlers import Handlers
 from .acommon import setAppCommon
 from .batchjob import BatchJob
 
-from .fittools import CircleFit, SlotFit
+from .fittools import ShapeFit, CircleFit, SlotFit, Circle1, LongCircle
 from .fittools2 import OuterlineFit, CellFit
 from .analysis import *

@@ -2,19 +2,18 @@
 import os, sys
 import argparse
 import re
+import math
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
-import math
-from scipy import linalg
-from mpl_toolkits.mplot3d import axes3d
-import statistics
-from scipy.stats import norm
-import tkinter as tk
-from PIL import Image, ImageTk
+#import matplotlib.pyplot as plt
+#import math
+#import tkinter as tk
+#from PIL import Image, ImageTk
+import logging
 
 import pmm
 
+logger = logging.getLogger(__name__)
 
 def parseArgs():
     parser = argparse.ArgumentParser()
@@ -24,6 +23,9 @@ def parseArgs():
     parser.add_argument('-i', '--imageFiles', dest='imageFiles',
                         type=str, default='',
                         help='List of image files (CSV format)')
+    parser.add_argument('--shape', dest='shape',
+                        type=str, default='Circle',
+                        help='Shape to fit the edges')
     parser.add_argument('-s', '--subRegion', dest='subRegion',
                         type=str, default='',
                         help='Sub-region to draw image patches')
@@ -38,10 +40,18 @@ def run(args):
     print('scanDir => %s' % scanDir)
     logname = os.path.join(args.scanDir, 'log.txt')
 
-    fitter = pmm.CircleFit()
+    fitter = pmm.ShapeFit()
+    shape = None
+    if args.shape == 'Circle':
+        shape = pmm.Circle1(parameters=[0.0, 0.0, 1.0E-3])
+    elif args.shape == 'LongCircle':
+        logger.info(f'Use {args.shape} to fit')
+        alpha = -math.pi/4.0
+        #shape = pmm.LongCircle(parameters=[0.0, 0.0, 1.0E-3, 1.0, alpha])
+        shape = pmm.LongCircle(parameters=[26.89, -26.74, 1.53, 0.9, alpha])
+    fitter.setInitialShape(shape)
 
     imageXY = fitter.readLog(logname)
-    print(imageXY)
 
     files = args.imageFiles.split(',')
 
@@ -55,7 +65,12 @@ def run(args):
         images.append(image)
 
     bigImage, circle, pointsGlobal = fitter.run(images)
-    
+    cv2.imwrite('combined.jpg', bigImage)
+    cx = pmm.roundF(circle.cx, '5.3f')
+    cy = pmm.roundF(circle.cy, '5.3f')
+    r = pmm.roundF(circle.r, '5.3f')
+    logger.info(f'Circle ({cx}, {cy}) r={r}')
+
     outliers=[]
     vx1, vy1 = [], []
     for i, p in enumerate(pointsGlobal):
@@ -67,7 +82,6 @@ def run(args):
     #dz = np.array(d)
     #print(vx)
 
-    print('centre of the cirle :')
     print(circle)
 
         
@@ -75,6 +89,7 @@ def run(args):
 
 if __name__ == '__main__':
     args = parseArgs()
+    logging.basicConfig(level=logging.DEBUG)
     run(args)
     
     

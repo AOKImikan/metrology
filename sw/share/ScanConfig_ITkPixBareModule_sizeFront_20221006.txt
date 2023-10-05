@@ -3,33 +3,33 @@
  21.000  22.000 Jig
  20.000 -22.000 Jig
 -18.760 -22.000 Jig
--20.000  21.080 Asic4L,Asic4T,AsicT,AsicL
- -9.900  21.080 Asic4T,AsicT
- -0.000  21.200 Asic4T,Asic4R,Asic3T,Asic3L,AsicT
-  5.100  21.180 Asic3T,AsicT
- 19.900  21.180 Asic3T,Asic3R,AsicT,AsicR
- 19.800 -20.900 Asic2R,Asic2B,AsicR
-  9.900 -21.000 Asic2B,AsicB
-  0.000 -21.000 Asic2B,Asic2L,Asic1B,Asic1R,AsicB
- -5.100 -21.000 Asic1B,AsicB
--20.000 -20.820 Asic1B,Asic1L,AsicL
--20.400  19.680 SensorL,SensorT
--20.500   9.380 SensorL
--20.500  -0.620 SensorL
--20.600 -10.620 SensorL
--20.500 -19.420 SensorL,SensorB
--10.300 -19.520 SensorB
- -0.300 -19.520 SensorB
-  9.800 -19.520 SensorB
- 20.300 -19.520 SensorB,SensorR
- 20.300  -9.520 SensorR
- 20.300   0.480 SensorR
- 20.300  10.480 SensorR
- 20.200  19.700 SensorR,SensorT
- 10.100  19.700 SensorT
- -0.000  19.700 SensorT
- -9.900  19.700 SensorT
--20.300  19.700 SensorT,SensorL
- -0.000  -0.000 #
--19.900   0.100 SensorL
- 19.900   0.100 SensorR
+-20.000  21.080 AsicT,AsicL,AsicZ
+ -9.900  21.080 AsicT,AsicZ
+ -0.000  21.200 AsicT,AsicZ
+  5.100  21.180 AsicT,AsicZ
+ 19.900  21.180 AsicT,AsicR,AsicZ
+ 19.800 -20.900 AsicB,AsicR,AsicZ
+  9.900 -21.000 AsicB,AsicZ
+  0.000 -21.000 AsicB,AsicZ
+ -5.100 -21.000 AsicB,AsicZ
+-20.000 -20.820 AsicB,AsicL,AsicZ
+-20.400  19.680 SensorL,SensorT,SensorZ
+-20.500   9.380 SensorL,SensorZ
+-20.500  -0.620 SensorL,SensorZ
+-20.600 -10.620 SensorL,SensorZ
+-20.500 -19.420 SensorL,SensorB,SensorZ
+-10.300 -19.520 SensorB,SensorZ
+ -0.300 -19.520 SensorB,SensorZ
+  9.800 -19.520 SensorB,SensorZ
+ 20.300 -19.520 SensorB,SensorR,SensorZ
+ 20.300  -9.520 SensorR,SensorZ
+ 20.300   0.480 SensorR,SensorZ
+ 20.300  10.480 SensorR,SensorZ
+ 20.200  19.700 SensorR,SensorT,SensorZ
+ 10.100  19.700 SensorT,SensorZ
+ -0.000  19.700 SensorT,SensorZ
+ -9.900  19.700 SensorT,SensorZ
+-20.300  19.700 SensorT,SensorL,SensorZ
+ -0.000  -0.000 SensorZ
+-19.900   0.100 SensorL,SensorZ
+ 19.900   0.100 SensorR,SensorZ

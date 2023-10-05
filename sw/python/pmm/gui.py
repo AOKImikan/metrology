@@ -53,15 +53,16 @@ class PmmWindow(QMainWindow):
     signalProcessPhoto = pyqtSignal(str, str, int)
     signalDecoratePhoto = pyqtSignal(str, str, int)
 
-    def __init__(self, configFile=None):
+    def __init__(self, configFile=None, appModel=None):
         super().__init__()
         self.title = 'Pixel module metrology analysis'
         self.width = 1300
         self.height = 800
 
-        # Get rid of all the following
         self.configStore = ConfigStore(configFile)
-        self.data = AppData(os.path.join(self.configStore.workDir, 'AppData'))
+        self.model = appModel
+        # Get rid of all the following
+        #self.data = AppData(os.path.join(self.configStore.workDir, 'AppData'))
 
     def setHandlers(self, handlers):
         self.handlers = handlers
@@ -70,20 +71,27 @@ class PmmWindow(QMainWindow):
         #
         #self.handlers = GuiHandlers(self, self.data, self.configStore)
         
-        self.data.moduleType = 'Rd53aModule'
-        self.data.moduleName = 'KEKQ000'
-        self.moduleDesign = createModule(self.data.moduleType)
+        #self.data.moduleType = 'ITkPixV1xModule'
+        #self.data.moduleName = 'KEKQ000'
+        self.moduleDesign = None
+        #self.moduleDesign = createModule(self.data.moduleType)
 
         #cvConfig = self.configStore.componentViewConfig
         #self.componentView = cvConfig.componentView(self.data.moduleType)
 
-        self.data.heightZoom = 20
-        self.data.sizeZoom = 20
-        self.data.flatnessZoom = 20
-
+        #self.data.heightZoom = 20
+        #self.data.sizeZoom = 20
+        #self.data.flatnessZoom = 20
+        #
+        self.handlers.updateComponentTypes()
+        self.handlers.updateTestSteps()
         #
         self.componentMap = {}
         self.buildGui()
+        self.handlers.viewModel.initialize()
+        self.componentMap['ComponentTypeBox'].setCurrentIndex(0)
+        cname = self.componentMap['ComponentTypeBox'].currentText()
+        self.handlers.viewModel.setComponentType(cname)
 
     def getComponent(self, cName):
         x = None
@@ -95,6 +103,13 @@ class PmmWindow(QMainWindow):
         table = None
         if tableName in self.componentMap.keys():
             table = self.componentMap[tableName]
+            n = self.summaryTab.count()
+            logger.info(f'Summary tabs: {n}')
+            if n >= 3:
+                if tableName.find('Height')>=0:
+                    self.summaryTab.setCurrentIndex(1)
+                elif tableName.find('Size')>=0:
+                    self.summaryTab.setCurrentIndex(2)
         return table
     
     def buildGui(self):
@@ -140,10 +155,11 @@ class PmmWindow(QMainWindow):
         layout = QVBoxLayout()
         layout.setContentsMargins(5, 5, 5, 5)
         self.frameConfig.setLayout(layout)
-        layout.addWidget(self.buildModulePanel())
         self.frameScans = QFrame()
         self.frameScans.setObjectName('frameScans')
+        layout.addWidget(self.buildComponentSelectionPanel())
         layout.addWidget(self.frameScans)
+        layout.addWidget(self.buildModulePanel())
         self.componentMap['Frame:Scans'] = self.frameScans
 
         layout1 = QVBoxLayout()
@@ -200,6 +216,14 @@ class PmmWindow(QMainWindow):
 
         #self.btnExit.clicked.connect(self.close)
 
+    def setComponentTypes(self, v):
+        global moduleTypes
+        moduleTypes = v
+        
+    def setTestSteps(self, v):
+        global testSteps
+        testSteps = v
+        
     def buildMenu(self, menuBar):
         menuFile = menuBar.addMenu('&File')
         menuOption = menuBar.addMenu('&Options')
@@ -214,6 +238,7 @@ class PmmWindow(QMainWindow):
         files = QFileDialog.getOpenFileName(self, 'Open module file',
                                             self.configStore.workDir, 
                                             'Pickle files (*.pickle)')
+        logger.info('Inside openModuleFile')
         fname = files[0]
         data = loadAppData(fname)
         if data!=None:
@@ -233,50 +258,63 @@ class PmmWindow(QMainWindow):
         logger.info('Closing the main window')
         #self.data.save()
 
-    def buildModulePanel(self):
+    def buildComponentSelectionPanel(self):
         panel = QFrame()
         layout1 = QVBoxLayout()
         layout1.setContentsMargins(2, 2, 2, 2)
         panel.setLayout(layout1)
         frame1 = QFrame()
-        frame2 = QFrame()
-        frame3 = QFrame()
         layout1.addWidget(frame1)
-        layout1.addWidget(frame2)
-        layout1.addWidget(frame3)
 
         # Module type
         layout = QHBoxLayout()
         layout.setContentsMargins(2, 2, 2, 2)
         frame1.setLayout(layout)
-        layout.addWidget(QLabel(text='Module type: '))
+        layout.addWidget(QLabel(text='Component type: '))
         typeBox = QComboBox()
         #typeBox = QLineEdit(self.data.moduleType)
         for c in moduleTypes:
             typeBox.addItem(c)
-        #typeBox.currentTextChanged.connect(self.handlers.selectComponentType)
-        typeBox.currentTextChanged.connect(self.handlers.selectComponentType)
+        typeBox.currentTextChanged.connect(self.handlers.setComponentType)
         layout.addWidget(typeBox)
+        self.componentMap['ComponentTypeBox'] = typeBox
+        return panel
+        
+    def buildModulePanel(self):
+        panel = QFrame()
+        layout1 = QVBoxLayout()
+        layout1.setContentsMargins(2, 2, 2, 2)
+        panel.setLayout(layout1)
+        #frame1 = QFrame()
+        frame2 = QFrame()
+        frame3 = QFrame()
+        #layout1.addWidget(frame1)
+        layout1.addWidget(frame2)
+        layout1.addWidget(frame3)
 
         # Test step
         layout = QHBoxLayout()
         layout.setContentsMargins(2, 2, 2, 2)
         frame2.setLayout(layout)
-        layout.addWidget(QLabel(text='Test step: '))
+        layout.addWidget(QLabel(text='Test stage: '))
         stepBox = QComboBox()
         for c in testSteps:
             stepBox.addItem(c)
-        stepBox.currentTextChanged.connect(self.setTestStep)
+        #stepBox.currentTextChanged.connect(self.setTestStep)
+        stepBox.currentTextChanged.connect(self.handlers.testStepChanged)
         layout.addWidget(stepBox)
         
         # Module name
         layout = QHBoxLayout()
         layout.setContentsMargins(2, 2, 2, 2)
         frame3.setLayout(layout)
-        nameBox = QLineEdit(self.data.moduleName)
-        layout.addWidget(QLabel('Module name: '))
+        nameBox = QLineEdit(self.model.componentName)
+        layout.addWidget(QLabel('Serial number: '))
         layout.addWidget(nameBox)
-        nameBox.textChanged.connect(self.setModuleName)
+        #nameBox.textChanged.connect(self.setModuleName)
+        nameBox.textChanged.connect(self.handlers.componentNameChanged)
+        self.componentMap['ComboBox:Stage'] = stepBox
+        self.componentMap['Text:SerialNumber'] = nameBox
         return panel
 
     def buildControlFrame(self):
@@ -291,7 +329,7 @@ class PmmWindow(QMainWindow):
         texts = ('All','Done')
         for x in texts:
             text = 'Process %s' % x
-            if x == 'Done': text = 'Done (create JSON file)'
+            if x == 'Done': text = 'Save (create JSON file)'
             frame2 = QFrame()
             layout1.addWidget(frame2)
             layout2 = QHBoxLayout()
@@ -303,7 +341,7 @@ class PmmWindow(QMainWindow):
             if x == texts[0]:
                 button.clicked.connect(self.handlers.processAllScans)
             elif x == texts[1]:
-                button.clicked.connect(self.saveJsonFile)
+                button.clicked.connect(self.handlers.saveFile)
             buttons.append(button)
         return frame
 
@@ -762,9 +800,11 @@ class PmmWindow(QMainWindow):
     def setTestStep(self, x):
         logger.info('Test step is "%s"' % x)
         self.data.testStep = x
+        self.handlers.testStepChanged(x)
         
     def setModuleName(self, name):
-        self.data.moduleName = name
+        #self.data.moduleName = name
+        self.handlers.componentNameChanged(name)
 
     def selectLogFile(self, ctag, ltext):
         dir = self.configStore.scanDir

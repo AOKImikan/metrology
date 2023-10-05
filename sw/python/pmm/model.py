@@ -852,9 +852,10 @@ class ConfigStore:
         self.scanDir = ''
         self.workDir = '.'
         self.modulesDir = './modules'
+        self.resultsDir = './results'
         self.componentViewConfig = ComponentViewConfig()
-        cvConfig = os.path.join(self.swDir, 'share/pmmview.cfg')
-        self.componentViewConfig.read(cvConfig)
+        #cvConfig = os.path.join(self.swDir, 'share/pmmview.cfg')
+        #self.componentViewConfig.read(cvConfig)
         
         self.scanConfigList = ScanConfigList()
 
@@ -874,7 +875,8 @@ class ConfigStore:
                 ]
             for dname in dirs:
                 if not os.path.exists(dname):
-                    os.mkdir(dname)
+                    #os.mkdir(dname)
+                    pass
                 
     def checkScanConfigs(self):
         files = os.listdir(self.shareDir)
@@ -904,6 +906,8 @@ class ConfigStore:
                     self.scanDir = data['scanDir']
                 if 'workDir' in keys:
                     self.workDir = data['workDir']
+                if 'resultsDir' in keys:
+                    self.resultsDir = data['resultsDir']
                 if 'pickupScanConfig' in keys:
                     self.pickupScanConfig = data['pickupScanConfig']
                 if 'heightScanConfig' in keys:
@@ -948,14 +952,3 @@ class ConfigStore:
             return self.scanConfigList.flatnessList
         return []
 
-    # def configsWithString(self, s):
-    #     v = []
-    #     for c in self.scanConfigNames:
-    #         if c.find(s)>=0: v.append(c)
-    #     return v
-    # def getHeightConfigs(self):
-    #     return self.configsWithString('height')
-    # def getSizeConfigs(self):
-    #     return self.configsWithString('size')
-    # def getFlatnessConfigs(self):
-    #     return self.configsWithString('flatness')

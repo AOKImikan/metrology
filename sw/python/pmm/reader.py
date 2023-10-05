@@ -6,8 +6,7 @@
 import os, sys
 import re
 import numpy as np
-
-from pmm.model import *
+from .model import ScanPointConfig
 
 z_umPerPulse = 0.156 # um/pulse (AF)
 NEAREND = 334791*z_umPerPulse # [um]

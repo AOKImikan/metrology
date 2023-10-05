@@ -23,6 +23,22 @@ from .gui import *
 
 logger = logging.getLogger(__name__)
 
+def roundF(value, fmt):
+    x = value
+    t1 = type(0.0)
+    t2 = np.float64
+    if type(value) == t1 or type(value) == t2:
+        s = f'%{fmt}' % value
+        x = float(s)
+    elif type(value) == type([]):
+        x = []
+        for y in value:
+            s = f'%{fmt}' % y
+            x.append(float(s))
+    else:
+        logger.warning(f'Value {value} of type {type(value)} was given to roundF(...)')
+    return x
+
 def fitLine0(points):
     line = None
     n = len(points)
@@ -62,9 +78,9 @@ def fitLine0(points):
             pars[i] = pars2[i2]
             i2 += 1
     line = Line()
-    for p in points:
-        print(p.position)
-    print(pars)
+    #for p in points:
+    #    print(p.position)
+    #print(pars)
     line.setPars(pars)
     return line
 

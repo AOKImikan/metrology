@@ -9,9 +9,10 @@ import functools
 import shutil
 import math
 import tkinter as tk
+import numpy as np
 
-from PyQt5.QtCore import Slot
-from PyQt5.QtGui import QPixmap
+#from PyQt5.QtCore import Slot
+from PyQt5.QtGui import QPixmap, QImage
 
 from .data2 import ImageNP, ScanData
 from .data3 import *
@@ -20,10 +21,19 @@ from .tools import fitLine, fitPlane
 from .model import *
 from .prec import *
 from .workflow import *
-from .fittools import CircleFit, SlotFit
+from .fittools import CircleFit, SlotFit, ShapeFit, Circle1, LongCircle
 from .fittools2 import OuterlineFit, CellFit
+from .imageTool import ImageTool
 
 logger = logging.getLogger(__name__)
+
+def arrayToPixmap(img):
+    nrows, ncols, nch = img.shape
+    nbytes = nch*ncols
+    img2 = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    qimage = QImage(img2.data, ncols, nrows, nbytes, QImage.Format_RGB888)
+    pixmap = QPixmap.fromImage(qimage)
+    return pixmap
 
 #--------------------------------------------------
 # Analysis base class
@@ -55,7 +65,7 @@ class Analysis:
                 'componentType', 'workDir', 'state' ]
     
     def setModel(self, model):
-        logger.info(f'Setting model {model} to analyis, {self.name}')
+        #logger.info(f'Setting model {model} to analyis, {self.name}')
         self.model = model
 
     def setViewModel(self, viewModel):
@@ -64,17 +74,20 @@ class Analysis:
     def defineOutputKeys(self):
         pass
 
-    def findPointsWithTag(self, tag):
+    def findPointsWithTag(self, tag, excludeBadPoint=False):
         v = []
+        mm = 1.0E-3
         for p in self.scanData.points:
             tags = p.value('tags')
+            if excludeBadPoint and p.get('error'):
+                continue
             if tag in tags:
                 v.append(p)
         return v
 
     def selectPoints(self, tag):
         return self.findPointsWithTag(tag)
-    
+
     def setState(self, s):
         if s == Analysis.kIdle:
             self.state = Analysis.kIdle
@@ -150,6 +163,7 @@ class ImagePatternAnalysis(Analysis):
         self.tagPatternsMap = {}
         self.tagImageMap = {}
         self.tagImagePatterns = {}
+        self.patternRecDone = False
         #
         self.precTagLineH = functools.partial(self.precTagPattern,
                                               precfunc=self.findLineH,
@@ -184,47 +198,6 @@ class ImagePatternAnalysis(Analysis):
         #
         return status
     
-    def mainRunOld(self, tags):
-        logger.debug('  mainRunThread of ImagePatternAnalysis')
-        status = True
-        tags = self.scanData.allTags()
-        self.tagPatternsMap.clear()
-        
-        #
-        outputDir = self.model.outputDir()
-        #
-        #n = len(self.scanData.points)
-
-        images = []
-        for tag in tags:
-            outdata = self.tagImageMap[tag] = {}
-            points = self.scanData.pointsWithTag(tag)
-
-            logger.debug(f'process tag {tag}')
-            #if tag.startswith('Hole'):
-            if tag == 'HoleTL' or tag == 'HoleBR':
-                logger.debug(f'find big circle for {tag}')
-                imageNPs = self.prepareImageNPs(tag)
-                imageNPMap = {}
-                for x in imageNPs:
-                    imageNPMap[x.filePath] = x
-            else:
-                for ipoint, point in enumerate(points):
-                    imageName = f'{tag}_{ipoint}'
-                    imagePath = point.get('imagePath')
-                    zoom = point.get('zoom')
-                    if not os.path.exists(imagePath): continue
-                    #image = cv2.imread(imagePath, cv2.IMREAD_COLOR)
-                    outImage = ImageNP(imageName, imagePath)
-                    imageQ = QPixmap(imagePath)
-                    outImage.imageQ = imageQ
-                    outdata[imageName] = outImage
-                    if self.viewModel:
-                        logger.debug(f'Emit signal photoReady for {imageName}')
-                        self.viewModel.sigPhotoReady.emit(f'{tag}/{imageName}')
-        return status
-
-
     ###
     # - findXXX(self, tag, imageNP) -> (shape object, outImage)
     # - findXXX(self, tag, imageNPs) -> (shape object, outImage)
@@ -237,12 +210,12 @@ class ImagePatternAnalysis(Analysis):
         values = []
         for key in keys:
             if self.outData[key] != None:
-                logger.info(f'key = {key}')
+                #logger.info(f'key = {key}')
                 values.append(self.outData[key].get('value'))
         self.outData[tag] = AveragedValue(tag, values)
         #
         points = self.pointsWithTagMatch(f'{tag}_(.+)_point')
-        logger.info(f'  Number of points along {tag}: {len(points)}')
+        #logger.info(f'  Number of points along {tag}: {len(points)}')
         if len(points)>=2:
             line = fitLine(points)
         else:
@@ -256,6 +229,7 @@ class ImagePatternAnalysis(Analysis):
         else:
             self.tagImagePatterns[tag] = patterns
         if not name in patterns.keys():
+            logger.info(f'Add patternRecImage for {name}')
             patterns[name] = rec
         else:
             logger.warning(f'Pattern rec image {tag}/{name} already exists')
@@ -267,16 +241,17 @@ class ImagePatternAnalysis(Analysis):
                               imageNP.filePath, imageNP.zoom,
                               outputDir)
         pos = rec.run()
-        imageName = f'{imageNP.name}_p1'
-        imagePath = os.path.basename(imageNP.filePath)
-        imagePath = os.path.join(outputDir, imagePath)
-        imagePath = imagePath.replace('.jpg', f'_{imageName}.jpg')
+        imageName = f'{imageNP.name}'#_p1'
+        #imagePath = os.path.basename(imageNP.filePath)
+        #imagePath = os.path.join(outputDir, imagePath)
+        #imagePath = imagePath.replace('.jpg', f'_{imageName}.jpg')
+        imageNP = ImageNP(imageName, '')
         xy = rec.position()
         point = None
         self.addPatternRecImage(tag, imageNP.name, rec)
         if rec.patternValid:
             point = CvPoint(*xy)
-        return point, ImageNP(imageName, imagePath)
+        return point, imageNP
 
     def findLineV(self, tag, imageNP, figname):
         outputDir = self.model.outputDir()
@@ -285,16 +260,14 @@ class ImagePatternAnalysis(Analysis):
                               imageNP.filePath, imageNP.zoom,
                               outputDir)
         pos = rec.run()
-        imageName = f'{imageNP.name}_p1'
-        imagePath = os.path.basename(imageNP.filePath)
-        imagePath = os.path.join(outputDir, imagePath)
-        imagePath = imagePath.replace('.jpg', f'_{imageName}.jpg')
+        imageName = f'{imageNP.name}'#_p1'
+        imageNP = ImageNP(imageName, '')
         xy = rec.position()
         point = None
         self.addPatternRecImage(tag, imageNP.name, rec)
         if rec.patternValid:
             point = CvPoint(*xy)
-        return point, ImageNP(imageName, imagePath)
+        return point, imageNP
 
     def findCircle(self, tag, imageNP, figname):
         outputDir = self.model.outputDir()
@@ -303,11 +276,6 @@ class ImagePatternAnalysis(Analysis):
                               imageNP.filePath, imageNP.zoom,
                               outputDir)
         #pos = rec.run()
-        imageName = f'{imageNP.name}_p1'
-        imagePath = os.path.basename(imageNP.filePath)
-        imagePath = os.path.join(outputDir, imagePath)
-        imagePath = imagePath.replace('.jpg', f'_{imageName}.jpg')
-        #
         rec.openImage()
         rec.createImageP1()
         #
@@ -316,7 +284,7 @@ class ImagePatternAnalysis(Analysis):
         self.addPatternRecImage(tag, imageNP.name, rec)
         if rec.patternValid:
             point = CvPoint(*xy)
-        return point, ImageNP(imageName, imagePath)
+        return point, ImageNP(imageNP.name, '')
     
     def findOuterline(self, tag, imageNP, figname):
         outputDir = self.model.outputDir()
@@ -327,7 +295,7 @@ class ImagePatternAnalysis(Analysis):
         if tag[-1] == 'L':
             image, point, localpoint = fitter.run(imageNP, 'L', r)
             line.setFromX(localpoint[0].x())
-            print(f'localpoint : {localpoint}')
+            #print(f'localpoint : {localpoint}')
         elif tag[-1] == 'R':
             image, point, localpoint = fitter.run(imageNP, 'R', r)
             line.setFromX(localpoint[0].x())
@@ -342,21 +310,29 @@ class ImagePatternAnalysis(Analysis):
         imagePath = os.path.basename(imageNP.filePath)
         imagePath = os.path.join(outputDir, imagePath)
         imagePath = imagePath.replace('.jpg', f'_{imageName}.jpg')
-        return line, ImageNP(imageName, imagePath)
+        return line, ImageNP(imageName, '')
     
     def findBigCircle(self, tag, imageNPs):
         outputDir = self.model.outputDir()
-        fitter = CircleFit()
-        fitter.setOutputDir(outputDir)
+        fitter = ShapeFit()
+        shape = Circle1(parameters=[0.0, 0.0, 1.0E-3])
+        fitter.setInitialShape(shape)
         bigImage, circle, pointsGlobal = fitter.run(imageNPs)
-        return (circle, bigImage)
+        imageNP = ImageNP(tag, '')
+        imageNP.image = bigImage
+        self.addPatternRecImage(tag, imageNP.name, fitter)
+        return (circle, imageNP)
     
     def findBigSlot(self, tag, imageNPs):
         outputDir = self.model.outputDir()
-        fitter = SlotFit()
-        fitter.setOutputDir(outputDir)
+        fitter = ShapeFit()
+        shape = LongCircle(parameters=[0.0, 0.0, 1.0E-3, 1.0, -math.pi/4])
+        fitter.setInitialShape(shape)
         bigImage, circle, pointsGlobal = fitter.run(imageNPs)
-        return (circle, bigImage)
+        imageNP = ImageNP(tag, '')
+        imageNP.image = bigImage
+        self.addPatternRecImage(tag, imageNP.name, fitter)
+        return (circle, imageNP)
 
     def precTagPattern(self, tag, precfunc, combineImages=False, x=None, y=None):
         imageNPs = self.prepareImageNPs(tag)
@@ -368,22 +344,27 @@ class ImagePatternAnalysis(Analysis):
 
         if combineImages:
             logger.debug(f'Pattern rec {tag}')
-            circle, outImage = precfunc(tag, imageNPs)
-            logger.debug(f'{outImage.filePath} exists? {os.path.exists(outImage.filePath)}')
-            imageQ = QPixmap(outImage.filePath)
+            shape, outImage = precfunc(tag, imageNPs)
+            #logger.debug(f'{outImage.filePath} exists? {os.path.exists(outImage.filePath)}')
+            imageQ = arrayToPixmap(outImage.image)
             outImage.imageQ = imageQ
 
             name2 = f'{tag}/{outImage.name}'
             self.tagImageMap[tag][outImage.name] = outImage
-            if circle != None:
+            if shape != None:
                 key = f'{tag}_x'
-                self.outData[key] = MeasuredValue(key, circle[0], 0.0)
+                self.outData[key] = MeasuredValue(key, shape.cx, 0.0)
                 key = f'{tag}_y'
-                self.outData[key] = MeasuredValue(key, circle[1], 0.0)
+                self.outData[key] = MeasuredValue(key, shape.cy, 0.0)
                 key = f'{tag}_r'
-                self.outData[key] = MeasuredValue(key, circle[2], 0.0)
-                key = f'{tag}_circle'
-                self.outData[key] = circle
+                self.outData[key] = MeasuredValue(key, shape.r, 0.0)
+                key = f'{tag}_shape'
+                self.outData[key] = shape
+                if type(shape) == LongCircle:
+                    key = f'{tag}_l'
+                    self.outData[key] = MeasuredValue(key, shape.l, 0.0)
+                    key = f'{tag}_alpha'
+                    self.outData[key] = MeasuredValue(key, shape.alpha, 0.0)
             else:
                 logger.warning(f'Could not find pattern in {outImage.name}')
                 self.outData[f'{tag}_x'] = None
@@ -395,12 +376,18 @@ class ImagePatternAnalysis(Analysis):
             for ipoint, imageNP in enumerate(imageNPs):
                 logger.debug(f'Pattern rec {imageNP.name}')
                 pattern, outImage = precfunc(tag, imageNP, figname=f'{tag}_{ipoint}')
-                logger.debug(f'{outImage.filePath} exists? {os.path.exists(outImage.filePath)}')
                 outImage.xyOffset = imageNP.xyOffset
-                imageQ = QPixmap(outImage.filePath)
-                outImage.imageQ = imageQ
+                if tag in self.tagImagePatterns.keys() and\
+                   outImage.name in self.tagImagePatterns[tag].keys():
+                    rec = self.tagImagePatterns[tag][outImage.name]
+                    if rec:
+                        imageQ = ImageTool.arrayToQPixmap(rec.image1)
+                        outImage.imageQ = imageQ
+                    else:
+                        logger.warning('  rec is empty, cannot display photo')
 
                 name2 = f'{tag}/{outImage.name}'
+                logger.debug(f'  name2 = {name2}')
                 self.tagImageMap[tag][outImage.name] = outImage
                 if pattern != None:
                     key = f'{imageNP.name}_x'
@@ -417,6 +404,7 @@ class ImagePatternAnalysis(Analysis):
                     self.outData[key] = None
                     key = f'{imageNP.name}_point'
                     self.outData[key] = None
+                logger.debug('  Add photo to the gallery')
                 if self.viewModel:
                     logger.debug(f'Emit signal photoReady for {name2}')
                     self.viewModel.sigPhotoReady.emit(name2)
@@ -426,7 +414,7 @@ class ImagePatternAnalysis(Analysis):
         points = self.findPointsWithTag(tag)
         imageNPs = []
         for i, p in enumerate(points):
-            if p.get('error'): continue
+            #if p.get('error'): continue
             name = '%s_%d' % (tag, i)
             image = ImageNP(name, p.get('imagePath'))
             image.xyOffset = CvPoint( p.get('x'), p.get('y'))
@@ -434,34 +422,18 @@ class ImagePatternAnalysis(Analysis):
             imageNPs.append(image)
         return imageNPs
     
-    def runPatternRec(self, tags):
-        if len(tags) == 0:
-            tags = ['All']
-        outputDir = self.model.outputDir()
-        #
-        n = len(self.scanData.points)
-        for tag in tags:
-            logger.info('Pattern tag: %s' % tag)
-            self.tagPatternsMap[tag] = []
-            for i in range(n):
-                point = self.scanData.points[i]
-                if point.value('error'): continue
-                if tag=='All' or tag in point.value('tags'):
-                    imagePath = point.get('imagePath')
-                    zoom = point.get('zoom')
-                    logger.info('  use photo %s' % imagePath)
-                    rec = PatternRecImage(model.componentType, tag,
-                                          (point.get('x'), point.get('y')), 
-                                          imagePath, zoom,
-                                          outputDir)
-                    pos = rec.run()
-                    rec.clearLargeData()
-                    self.tagPatternsMap[tag].append(rec)
-                    if self.viewModel:
-                        logger.debug(f'Emit sigPhotoReady for {imagePath}')
-                        self.viewModel.sigPhotoReady.emit(imagePath)
+    def display(self, tag):
+        imageNPs = self.prepareImageNPs(tag)
+        m = {}
+        for x in imageNPs:
+            name2 = f'{tag}/{x.name}'
+            m[x.name] = x
+            if self.viewModel:
+                logger.debug(f'Emit signal photoReady for {name2}')
+                self.viewModel.sigPhotoReady.emit(name2)
+        self.tagImageMap[tag] = m
         pass
-
+    
     def preRun(self):
         return super().preRun()
 
@@ -482,7 +454,14 @@ class ImagePatternAnalysis(Analysis):
             if mg and v != None:
                 points.append(v)
         return points
-    
+
+    def clear(self):
+        super().clear()
+        self.outImages = {}
+        self.tagPatternsMap = {}
+        self.tagImageMap = {}
+        self.tagImagePatterns = {}
+        self.patternRecDone = False
     pass
 
 class ShapeAnalysis(Analysis):
@@ -633,6 +612,63 @@ class HeightAnalysis(Analysis):
             points2.append(Point([p[0], p[1], z]) )
         return points2
 
+    def calcAverageHeight(self, tag, points, dzcut=-1.0):
+        zvalues = list(map(lambda x: x[2], points))
+        zvalues.sort()
+        if dzcut > 0.0:
+            nmax = 0
+            imax = -1
+            np = len(points)
+            zvalues2 = []
+            for i0 in range(np):
+                v2 = []
+                z2 = points[i0][2]
+                for i in range(np):
+                    z = points[i][2]
+                    if z-z2 > 0 and abs(z-z2) < dzcut:
+                        v2.append(points[i][2])
+                n1 = len(v2)
+                if n1 > nmax:
+                    nmax = n1
+                    imax = i0
+                    zvalues2 = v2
+            logger.warning(f'  Use {len(zvalues2)} points to calculate the average height of {tag} (<{dzcut})')
+            zvalues = zvalues2
+        x = AveragedValue(tag, values=zvalues)
+        return x
+
+    def calculateJigPlane(self, jigPoints):
+        dzcut = 0.025
+        ntry = 3
+        hvalues = []
+        np0 = len(jigPoints)
+        while ntry>0:
+            height = self.calcAverageHeight('Jig', jigPoints, dzcut)
+            n = height.get('n')
+            if n == np0:
+                hvalues = height.get('values')
+                break
+            elif height.get('n')>=3:
+                logger.warning(f'  Use {n} points to obtain the jig plane (out of {np0}) ntry={ntry}')
+                hvalues = height.get('values')
+                break
+            else:
+                logger.warning(f'  Cannot derive the jig plane with {n} points. Increase the dzcut to {dzcut}')
+                dzcut *= 2
+            ntry -= 1
+        points = []
+        if len(hvalues)>=3:
+            zmin = min(hvalues)
+            for p in jigPoints:
+                if abs(p[2]-zmin)<dzcut:
+                    points.append(p)
+        else:
+            logger.warning(f'Heights of jig points deviates by more than 100 um, using all points but maybe wrong')
+            points = jigPoints
+        logger.info(f'Calculate jig plane with {len(points)} points')
+        jigPlane = self.fitPlane(points)
+        return jigPlane
+    
     def mainRun(self):
         points = self.scanData.points
         n = len(points)
@@ -713,19 +749,23 @@ class FlatnessBackSideAnalysis(Analysis):
 class FlexPatternAnalysis(ImagePatternAnalysis):
     def __init__(self, name):
         super().__init__(name)
-
+        self.patternRecDone = False
+        
     def defineOutputKeys(self):
         #self.outKeys = ['FiducialTL', 'FiducialTR', 'FiducialBL', 'FiducialBR']
-        self.outKeys = ['FlexL', 'FlexR', 'FlexB', 'FlexT', ]
-        #self.outKeys = ['HoleTL', 'HoleBR']
+        self.outKeys = [
+            'FlexL', 'FlexR', 'FlexB', 'FlexT',
+            'HoleTL_x', 'HoleTL_y', 'HoleTL_r', 
+            'SlotBR_x', 'SlotBR_y', 'SlotBR_r', 'SlotBR_l', 'SlotBR_alpha', 
+            ]
 
     def mainRun(self):
         super().mainRun()
         flexX = 40.0
         flexY = 40.0
         #
-        #self.precTagBigCircle('HoleTL', x=-27.0, y=27.0)
-        #self.precTagBigSlot('HoleBR', x=27.0, y=-27.0)
+        if self.patternRecDone:
+            return
         #self.precTagOuterline('FlexL', x=-flexX/2.0)
         #self.precTagOuterline('FlexR', x=flexX/2.0)
         #self.precTagOuterline('FlexT', y=flexY/2.0)        
@@ -734,7 +774,10 @@ class FlexPatternAnalysis(ImagePatternAnalysis):
         self.precTagLineV('FlexR', x=flexX/2.0)
         self.precTagLineH('FlexT', y=flexY/2.0)
         self.precTagLineH('FlexB', y=-flexY/2.0)
-
+        self.precTagBigCircle('HoleTL', x=-27.0, y=27.0)
+        self.precTagBigSlot('SlotBR', x=27.0, y=-27.0)
+        self.patternRecDone = True
+        
     def postRun(self):
         logger.info(f'{self.outData.keys()}')
         self.calculateLine('FlexL', 'x')
@@ -749,7 +792,7 @@ class FlexSizeAnalysis(SizeAnalysis):
 
     def defineOutputKeys(self):
         self.outKeys = [
-            'FlexX', 'FlexY',
+            'FlexX', 'FlexY', 'HoleTL_diameter', 'SlotBR_width'
         ]
         pass
 
@@ -769,6 +812,12 @@ class FlexSizeAnalysis(SizeAnalysis):
         logger.info(f'{self.outData["FlexB_line"]}')
         self.lineDiff('FlexX', 'FlexR', 'FlexL', 'v')
         self.lineDiff('FlexY', 'FlexT', 'FlexB', 'h')
+        x1 = self.inData['HoleTL_r'].get('value')*2
+        e1 = self.inData['HoleTL_r'].get('error')*2
+        x2 = self.inData['SlotBR_r'].get('value')*2
+        e2 = self.inData['SlotBR_r'].get('error')*2
+        self.outData['HoleTL_diameter'] = MeasuredValue('HoleTL_diameter', x1, e1)
+        self.outData['SlotBR_width'] = MeasuredValue('SlotBR_width', x2, e2)
         pass
 
     pass
@@ -781,39 +830,38 @@ class BareModulePatternAnalysis(ImagePatternAnalysis):
         
     def defineOutputKeys(self):
         self.outKeys = [
+            'FlexT', 'FlexB', 'FlexL', 'FlexR', 
+            'SensorT', 'SensorB', 'SensorL', 'SensorR', 
             ]
         pass
 
     def mainRun(self):
         super().mainRun()
-        asicW, asicH = 40.0, 40.0
-        sensorW, sensorH = 40.0, 40.0
         if self.patternRecDone:
             return
+        asicW, asicH = 40.0, 40.0
+        sensorW, sensorH = 40.0, 40.0
         #
-        #self.precTagLineH('AsicT', y=asicH/2.0)
-        #self.precTagLineH('AsicB', y=-asicH/2.0)
+        #logger.info('BareModulePatternAnalysis')
+        self.precTagLineH('AsicT', y=asicH/2.0)
+        self.precTagLineH('AsicB', y=-asicH/2.0)
         self.precTagLineV('AsicL', y=-asicW/2.0)
         self.precTagLineV('AsicR', y=asicW/2.0)
         self.precTagLineH('SensorT', y=sensorH/2.0)
         self.precTagLineH('SensorB', y=-sensorH/2.0)
-        #self.precTagLineV('SensorL', y=-sensorW/2.0)
-        #self.precTagLineV('SensorR', y=sensorW/2.0)
-        #self.precTagCircle('FmarkTL', x=sensorW/2.0, y=sensorH/2.0)
-        #self.precTagCircle('FmarkTB', x=sensorW/2.0, y=-sensorH/2.0)
-        #self.precTagCircle('FmarkRB', x=-sensorW/2.0, y=-sensorH/2.0)
-        #self.precTagCircle('FmarkRL', x=-sensorW/2.0, y=sensorH/2.0)
-        #self.precTagCircle('AsicFmarkTL', x=asicW/2.0, y=asicH/2.0)
-        #self.precTagCircle('AsicFmarkTB', x=asicW/2.0, y=-asicH/2.0)
-        #self.precTagCircle('AsicFmarkRB', x=-asicW/2.0, y=-asicH/2.0)
-        #self.precTagCircle('AsicFmarkRL', x=-asicW/2.0, y=asicH/2.0)
+        self.precTagLineV('SensorL', y=-sensorW/2.0)
+        self.precTagLineV('SensorR', y=sensorW/2.0)
         self.patternRecDone = True
 
     def postRun(self):
-        self.calculateLine('FlexL', 'x')
-        self.calculateLine('FlexR', 'x')
-        self.calculateLine('FlexT', 'y')
-        self.calculateLine('FlexB', 'y')
+        self.calculateLine('AsicL', 'x')
+        self.calculateLine('AsicR', 'x')
+        self.calculateLine('AsicT', 'y')
+        self.calculateLine('AsicB', 'y')
+        self.calculateLine('SensorL', 'x')
+        self.calculateLine('SensorR', 'x')
+        self.calculateLine('SensorT', 'y')
+        self.calculateLine('SensorB', 'y')
 
     pass
 
@@ -828,7 +876,7 @@ class BareModuleSizeAnalysis(SizeAnalysis):
 
     def defineOutputKeys(self):
         self.outKeys = [
-            'AsicX', 'SensorY', 
+            'AsicX', 'AsicY', 'SensorX', 'SensorY', 
             ]
     def mainRun(self):
         points = self.pointsWithTagMatch('AsicL_(.+)_point')
@@ -840,8 +888,11 @@ class BareModuleSizeAnalysis(SizeAnalysis):
         points = self.pointsWithTagMatch('SensorB_(.+)_point')
         self.outData['SensorB_line'] = self.recLine(points)
         #
-        self.lineDiff('AsicX', 'AsicR', 'AsicL', 'v')
-        self.lineDiff('SensorY', 'SensorT', 'SensorB', 'h')
+        # Bare module is rotated by 90 degrees
+        self.lineDiff('AsicX', 'AsicT', 'AsicB', 'h')
+        self.lineDiff('AsicY', 'AsicL', 'AsicR', 'v')
+        self.lineDiff('SensorX', 'SensorT', 'SensorB', 'h')
+        self.lineDiff('SensorY', 'SensorR', 'SensorL', 'v')
     pass
 
 class BareModuleBackSizeAnalysis(SizeAnalysis):
@@ -852,7 +903,6 @@ class BareModuleBackSizeAnalysis(SizeAnalysis):
 # Assembled module
 class ModulePatternAnalysis(ImagePatternAnalysis):
     def __init__(self, name):
-        logger.debug('ModulePatternAnalysis ctor')
         super().__init__(name)
         self.patternRecDone = False
 
@@ -874,14 +924,17 @@ class ModulePatternAnalysis(ImagePatternAnalysis):
         
     def mainRun(self):
         super().mainRun()
-        logger.debug('mainRun in Module pattern analysis')
+        #logger.info('mainRun in Module pattern analysis')
         asicW, asicH = 20.0, 20.0
         sensorW, sensorH = 20.0, 20.0
         flexW, flexH = 20.0, 20.0
         #
+        logger.info(f'ModulePatternAnalysis prec done={self.patternRecDone}')
         if self.patternRecDone:
             logger.info(f'{self.name} skip pattern recognition')
             return
+        else:
+            logger.info(f'Run pattern recognition for {self.name}')
         self.precTagLineV('AsicL', y=-asicW/2.0)
         self.precTagLineV('AsicR', y=asicW/2.0)
         self.precTagLineH('SensorT', y=sensorH/2.0)
@@ -898,10 +951,14 @@ class ModulePatternAnalysis(ImagePatternAnalysis):
         self.precTagCircle('AsicFmarkBL', x=asicW/2.0, y=-asicH/2.0)
         self.precTagCircle('AsicFmarkBR', x=-asicW/2.0, y=-asicH/2.0)
         self.precTagCircle('AsicFmarkTR', x=-asicW/2.0, y=asicH/2.0)
+        self.display('Jig')
+        self.display('Pickup1')
+        self.display('Pickup2')
+        self.display('Pickup3')
+        self.display('Pickup4')
         self.patternRecDone = True
 
     def postRun(self):
-        logger.info(f'ModulePatternAnalysis {self.outData}')
         self.calculateLine('AsicL', 'x')
         self.calculateLine('AsicR', 'x')
         #self.calculateLine('AsicT', 'y')
@@ -923,7 +980,7 @@ class ModuleSizeAnalysis(SizeAnalysis):
     def defineOutputKeys(self):
         self.outKeys = [
             'AsicX', 'SensorY', 'FlexX', 'FlexY', 
-            'AsicToFlexL', 'AsicToFlexR', 'SensorToFlexT', 'SensorToFlexB',
+            #'AsicToFlexL', 'AsicToFlexR', 'SensorToFlexT', 'SensorToFlexB',
             'Angle', 
             'FmarkDistanceTR_x', 'FmarkDistanceTR_y', 
             'FmarkDistanceBL_x', 'FmarkDistanceBL_y', 
@@ -940,63 +997,28 @@ class ModuleSizeAnalysis(SizeAnalysis):
         self.lineDiff('SensorToFlexT', 'SensorT', 'FlexT', 'h')
         self.lineDiff('SensorToFlexB', 'FlexB', 'SensorB', 'h')
         self.calculateFmarkDistance('FmarkDistanceTR', 'AsicFmarkTR', 'FmarkTR')
-        self.calculateFmarkDistance('FmarkDistanceBL', 'AsicFmarkBL', 'FmarkBL')
-        logger.info(f'ModuleSizeAnalysis... keys={self.outData.keys()}')
-        logger.info(f'{self.outData}')
-        #Angle = self.outData['FlexL_line'].angle(self.outData['AsicL_line'])*180/math.pi
-        Angle = 0.0
-        e = 0.0
-        self.outData['Angle'] = MeasuredValue('Angle', Angle, e)
+        self.calculateFmarkDistance('FmarkDistanceBL', 'FmarkBL', 'AsicFmarkBL')
+        
+        #logger.info(f'{self.outData}')
         #
 
-    def postProcess(self):
-        keys = list(self.tagPatternsMap.keys())
-        keys.sort()
-        valueMap = {}
-        sigmaMap = {}
-        for k in keys:
-            mean, sigma = patternMeanSigma(k, self.tagPatternsMap[k])
-            valueMap[k] = mean
-            sigmaMap[k] = sigma
-        self.sizeValueMap = valueMap
-        self.sizeSigmaMap = sigmaMap
-        print(valueMap)
-        if self.moduleType != 'Rd53AModule':
-            return 1
-        # Line reconstruction
-        pointsL = map(lambda x: x.position(), self.tagPatternsMap['FlexL'])
-        pointsB = map(lambda x: x.position(), self.tagPatternsMap['FlexB'])
-        pointsL = list(map(lambda x: CvPoint(*x), pointsL))
-        pointsB = list(map(lambda x: CvPoint(*x), pointsB))
-        print('Before fitLine')
-        angle = 90.0
-        if False and len(pointsL)>2 and len(pointsB)>2:
-            lineL = fitLine(pointsL)
-            lineB = fitLine(pointsB)
-            print('LineL = ', lineL)
-            print('LineB = ', lineB)
-            dirL = CvVector(*(lineL.direction()))
-            dirB = CvVector(*(lineB.direction()))
-            print('dirL = ', dirL)
-            if dirL.y<0.0: dirL *= -1.0
-            if dirB.x<0.0: dirB *= -1.0
-            angle = math.acos(dirL.dot(dirB))*180.0/math.pi
-        print('Angle = %6.4f' % angle)
-        #
-        if self.moduleType == 'Rd53AModule':
-            m = self.summary.sizeMap
-            m['AsicToFlexL'] = (valueMap['FlexL'] - valueMap['AsicL'], 0.0)
-            m['AsicToFlexR'] = (valueMap['AsicR'] - valueMap['FlexR'], 0.0)
-            m['SensorToFlexT'] = (valueMap['SensorT'] - valueMap['FlexT'], 0.0)
-            m['SensorToFlexB'] = (valueMap['FlexB'] - valueMap['SensorB'], 0.0)
-            m['AsicX'] = (valueMap['AsicR'] - valueMap['AsicL'], 0.0)
-            #m['AsicY'] = (valueMap['AsicT'] - valueMap['AsicB'], 0.0)
-            m['FlexX'] = (valueMap['FlexR'] - valueMap['FlexL'], 0.0)
-            m['FlexY'] = (valueMap['FlexT'] - valueMap['FlexB'], 0.0)
-            #m['SensorX'] = (valueMap['SensorR'] - valueMap['SensorL'], 0.0)
-            m['SensorY'] = (valueMap['SensorT'] - valueMap['SensorB'], 0.0)
-            m['Angle'] = (angle, 0.0)
-        #
+    def postRun(self):
+        dir1, dir2 = [0.0, 1.0], [0.0, 1.0]
+        if 'FlexL_line' in self.outData.keys():
+            line1 = self.outData['FlexL_line']
+            dir1 = line1.direction()
+        if 'AsicL_line' in self.outData.keys():
+            line2 = self.outData['AsicL_line']
+            dir2 = line2.direction()
+        a, b = dir1[0], dir1[1]
+        p, q = dir2[0], dir2[1]
+        c = a*p + b*q
+        s = -b*p + a*q
+        Angle = math.acos(c)*180.0/math.pi
+        if s < 0.0: Angle *= -1.0
+        e = 0.0
+        self.outData['Angle'] = MeasuredValue('Angle', Angle, e)
+        pass
 
     pass
 
@@ -1029,34 +1051,52 @@ class FlexHeightAnalysis(HeightAnalysis):
         super().__init__(name)
     def defineOutputKeys(self):
         self.outKeys = [
-            'JigZ', 'PickupZ', 'HVCapacitorZ', 'HVConnectorZ'
+            'JigZ', 'Pickup1', 'Pickup2','Pickup3', 'Pickup4', 'PickupZ',
+            'HVCapacitorZ', 'ConnectorZ'
             ]
         
     def mainRun(self):
         jigPoints = self.findPointsWithTag('Jig')
-        jigPlane = self.fitPlane(jigPoints)
+        jigPlane = self.calculateJigPlane(jigPoints)
         logger.debug(f'Jig plane {jigPlane}')
         #
         pickupPoints = []
-        pickupPoints.extend(self.findPointsWithTag('Pickup1'))
-        pickupPoints.extend(self.findPointsWithTag('Pickup2'))
-        pickupPoints.extend(self.findPointsWithTag('Pickup3'))
-        pickupPoints.extend(self.findPointsWithTag('Pickup4'))
+        pickupPoints1 = self.findPointsWithTag('Pickup1')
+        pickupPoints2 = self.findPointsWithTag('Pickup2')
+        pickupPoints3 = self.findPointsWithTag('Pickup3')
+        pickupPoints4 = self.findPointsWithTag('Pickup4')
         hvcapPoints = self.findPointsWithTag('HVCapacitor')
-        hvconnPoints = self.findPointsWithTag('HVConnector')
+        connPoints = self.findPointsWithTag('Connector')
         #
-        pickupPoints = self.correctHeight(pickupPoints, jigPlane)
+        pickupPoints1 = self.correctHeight(pickupPoints1, jigPlane)
+        pickupPoints2 = self.correctHeight(pickupPoints2, jigPlane)
+        pickupPoints3 = self.correctHeight(pickupPoints3, jigPlane)
+        pickupPoints4 = self.correctHeight(pickupPoints4, jigPlane)
         hvcapPoints = self.correctHeight(hvcapPoints, jigPlane)
-        hvconnPoints = self.correctHeight(hvconnPoints, jigPlane)
+        connPoints = self.correctHeight(connPoints, jigPlane)
+        pickupPoints.extend(pickupPoints1)
+        pickupPoints.extend(pickupPoints2)
+        pickupPoints.extend(pickupPoints3)
+        pickupPoints.extend(pickupPoints4)
         #
         logger.info(f'pickup = {list(map(lambda x: x[2], pickupPoints))}')
+        pickup1 = AveragedValue('Pickup1', values=list(map(lambda x: x[2], pickupPoints1)))
+        pickup2 = AveragedValue('Pickup2', values=list(map(lambda x: x[2], pickupPoints2)))
+        pickup3 = AveragedValue('Pickup3', values=list(map(lambda x: x[2], pickupPoints3)))
+        pickup4 = AveragedValue('Pickup4', values=list(map(lambda x: x[2], pickupPoints4)))
+        #
+        
         pickupZ = AveragedValue('PickupZ', values=list(map(lambda x: x[2], pickupPoints)))
         hvcapZ = AveragedValue('HVCapacitorZ', values=list(map(lambda x: x[2], hvcapPoints)))
-        hvconnZ = AveragedValue('HVConnectorZ', values=list(map(lambda x: x[2], hvconnPoints)))
+        connZ = AveragedValue('ConnectorZ', values=list(map(lambda x: x[2], connPoints)))
         self.outData['JigZ'] = MeasuredValue('JigZ', jigPlane.c, 0.0)
+        self.outData['Pickup1'] = pickup1
+        self.outData['Pickup2'] = pickup2
+        self.outData['Pickup3'] = pickup3
+        self.outData['Pickup4'] = pickup4
         self.outData['PickupZ'] = pickupZ
         self.outData['HVCapacitorZ'] = hvcapZ
-        self.outData['HVConnectorZ'] = hvconnZ
+        self.outData['ConnectorZ'] = connZ
         pass
     pass
 
@@ -1072,17 +1112,20 @@ class BareModuleHeightAnalysis(HeightAnalysis):
         pass
     
     def mainRun(self):
-        jigPoints = self.findPointsWithTag('Jig')
-        jigPlane = self.fitPlane(jigPoints)
+        jigPoints = self.findPointsWithTag('Jig', True)
+        jigPlane = self.calculateJigPlane(jigPoints)
         #
-        asicZPoints = self.findPointsWithTag('AsicZ')
-        sensorZPoints = self.findPointsWithTag('SensorZ')
+        asicZPoints = self.findPointsWithTag('AsicZ', True)
+        sensorZPoints = self.findPointsWithTag('SensorZ', True)
         asicZPoints = self.correctHeight(asicZPoints, jigPlane)
         sensorZPoints = self.correctHeight(sensorZPoints, jigPlane)
         #
+        dzcut = 0.050
         self.outData['JigZ'] = MeasuredValue('JigZ', 0.0, 0.0)
-        self.outData['AsicZ'] = AveragedValue('AsicZ', values=list(map(lambda x: x[2], asicZPoints)))
-        self.outData['SensorZ'] = AveragedValue('SensorZ', values=list(map(lambda x: x[2], sensorZPoints)))
+        asicZ = self.calcAverageHeight('AsicZ', asicZPoints, dzcut)
+        sensorZ = self.calcAverageHeight('SensorZ', sensorZPoints, dzcut)
+        self.outData['AsicZ'] = asicZ
+        self.outData['SensorZ'] = sensorZ
         pass
     
     pass
@@ -1090,6 +1133,25 @@ class BareModuleHeightAnalysis(HeightAnalysis):
 class BareModuleBackHeightAnalysis(HeightAnalysis):
     def __init__(self, name):
         super().__init__(name)
+    def defineOutputKeys(self):
+        self.outKeys = [
+            'JigZ(Back)', 
+            'SensorZ(Back)', 'AsicZ(Back)', 
+            ]
+    def mainRun(self):
+        jigPoints = self.findPointsWithTag('Jig', True)
+        jigPlane = self.fitPlane(jigPoints)
+        #
+        asicZPoints = self.findPointsWithTag('AsicZ', True)
+        sensorZPoints = self.findPointsWithTag('SensorZ', True)
+        asicZPoints = self.correctHeight(asicZPoints, jigPlane)
+        sensorZPoints = self.correctHeight(sensorZPoints, jigPlane)
+        #
+        self.outData['JigZ(Back)'] = MeasuredValue('JigZ(Back)', 0.0, 0.0)
+        self.outData['SensorZ(Back)'] = self.calcAverageHeight('SensorZ(Back)', sensorZPoints)
+        self.outData['AsicZ(Back)'] = self.calcAverageHeight('AsicZ(Back)', asicZPoints)
+    def postRun(self):
+        pass
     pass
 
 # Assembled module
@@ -1099,34 +1161,50 @@ class ModuleHeightAnalysis(HeightAnalysis):
     def defineOutputKeys(self):
         self.outKeys = [
             'JigZ', 'PickupZ',
-            #'Pickup1', 'Pickup2', 'Pickup3', 'Pickup4',
-            'HVCapacitorZ', 'HVConnectorZ', 
+            'Pickup1Z', 'Pickup2Z', 'Pickup3Z', 'Pickup4Z',
+            'HVCapacitorZ', 'ConnectorZ', 
             ]
     def mainRun(self):
         jigPoints = self.findPointsWithTag('Jig')
-        jigPlane = self.fitPlane(jigPoints)
+        jigPlane = self.calculateJigPlane(jigPoints)
         logger.debug(f'Jig plane {jigPlane}')
         #
         pickupPoints = []
-        pickupPoints.extend(self.findPointsWithTag('Pickup1'))
-        pickupPoints.extend(self.findPointsWithTag('Pickup2'))
-        pickupPoints.extend(self.findPointsWithTag('Pickup3'))
-        pickupPoints.extend(self.findPointsWithTag('Pickup4'))
+        pickupPoints1 = self.findPointsWithTag('Pickup1')
+        pickupPoints2 = self.findPointsWithTag('Pickup2')
+        pickupPoints3 = self.findPointsWithTag('Pickup3')
+        pickupPoints4 = self.findPointsWithTag('Pickup4')
         hvcapPoints = self.findPointsWithTag('HVCapacitor')
-        hvconnPoints = self.findPointsWithTag('HVConnector')
+        connPoints = self.findPointsWithTag('Connector')
         #
-        pickupPoints = self.correctHeight(pickupPoints, jigPlane)
+        pickupPoints1 = self.correctHeight(pickupPoints1, jigPlane)
+        pickupPoints2 = self.correctHeight(pickupPoints2, jigPlane)
+        pickupPoints3 = self.correctHeight(pickupPoints3, jigPlane)
+        pickupPoints4 = self.correctHeight(pickupPoints4, jigPlane)
+        pickupDz = 0.020
+        pickup1Z = self.calcAverageHeight('Pickup1', pickupPoints1, pickupDz)
+        pickup2Z = self.calcAverageHeight('Pickup2', pickupPoints2, pickupDz)
+        pickup3Z = self.calcAverageHeight('Pickup3', pickupPoints3, pickupDz)
+        pickup4Z = self.calcAverageHeight('Pickup4', pickupPoints4, pickupDz)
+        pickupPoints.append(pickup1Z.get('value'))
+        pickupPoints.append(pickup2Z.get('value'))
+        pickupPoints.append(pickup3Z.get('value'))
+        pickupPoints.append(pickup4Z.get('value'))
         hvcapPoints = self.correctHeight(hvcapPoints, jigPlane)
-        hvconnPoints = self.correctHeight(hvconnPoints, jigPlane)
+        connPoints = self.correctHeight(connPoints, jigPlane)
         #
-        logger.info(f'pickup = {list(map(lambda x: x[2], pickupPoints))}')
-        pickupZ = AveragedValue('PickupZ', values=list(map(lambda x: x[2], pickupPoints)))
+        logger.info(f'pickup = {pickupPoints}')
+        pickupZ = AveragedValue('PickupZ', values=pickupPoints)
         hvcapZ = AveragedValue('HVCapacitorZ', values=list(map(lambda x: x[2], hvcapPoints)))
-        hvconnZ = AveragedValue('HVConnectorZ', values=list(map(lambda x: x[2], hvconnPoints)))
+        connZ = AveragedValue('ConnectorZ', values=list(map(lambda x: x[2], connPoints)))
         self.outData['JigZ'] = MeasuredValue('JigZ', jigPlane.c, 0.0)
+        self.outData['Pickup1Z'] = pickup1Z
+        self.outData['Pickup2Z'] = pickup2Z
+        self.outData['Pickup3Z'] = pickup3Z
+        self.outData['Pickup4Z'] = pickup4Z
         self.outData['PickupZ'] = pickupZ
         self.outData['HVCapacitorZ'] = hvcapZ
-        self.outData['HVConnectorZ'] = hvconnZ
+        self.outData['ConnectorZ'] = connZ
         
     pass
 

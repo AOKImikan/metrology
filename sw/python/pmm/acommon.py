@@ -21,6 +21,7 @@ class AnalysisStore:
         viewModel = None
         if gApp:
             viewModel = gApp.viewModel
+        #logger.info(f'gApp = {gApp}, tname={tname}, vmodel={viewModel}')
         if tname in self.assets.keys():
             cls = self.assets[tname]
             n2 = oname

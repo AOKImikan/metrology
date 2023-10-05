@@ -4,16 +4,17 @@
 import os, sys
 import argparse
 import re
+from functools import partial
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import math
 from scipy import linalg
 from mpl_toolkits.mplot3d import axes3d
-#import statistics
 from scipy.stats import norm
 import tkinter as tk
 from PIL import Image, ImageTk
+import logging
 
 from .model import *
 from .reader import *
@@ -21,6 +22,690 @@ from .view import *
 from .gui import *
 from .acommon import *
 from .data2 import ImageNP, ScanData
+
+logger = logging.getLogger(__name__)
+
+class Shape:
+    def __init__(self):
+        self.parameters = []
+        self.pressures = [0.0]*100
+        self.parametersUpdated = False
+        pass
+
+    def initialValue(self, points):
+        pass
+
+    def distance(self, points):
+        v = list(map(lambda p: self.distanceP(p), points))
+        d = 1.0E+6
+        if len(v)>0:
+            d = min(v)
+        logger.debug(f'Distance to generic shape {len(v)} points -> {d}')
+        return d
+    
+    def dircheck(self, p, vref, cosThetaCut):
+        pp = np.array( (p[0]-self.cx, p[1]-self.cy) )
+        pp /= math.sqrt(pp.dot(pp))
+        #logger.debug(f'  dircheck pp={pp} innerProduct={vref.dot(pp)}')
+        return vref.dot(pp) > cosThetaCut
+    
+    def updatePressures(self, points):
+        n = len(self.pressures)
+        dtheta = 2.0*math.pi/n
+        dcos = math.cos(dtheta/2.0)
+        logger.debug(f'  Update pressures from {len(points)} points')
+        for i in range(n):
+            theta = (i+0.5)*dtheta
+            thetavec = np.array( (math.cos(theta), math.sin(theta)) )
+            func = partial(self.dircheck, vref=thetavec, cosThetaCut=dcos)
+            plist = list(filter(func, points))
+            if len(plist)>0:
+                logger.debug(f'    Angle [{i}]->{theta}, npoints={len(plist)}')
+            self.pressures[i] = len(plist)
+        self.parametersUpdated = False
+
+    def pressureBalanced(self, points, npcut=1):
+        if self.parametersUpdated:
+            self.updatePressures(points)
+        n = len(self.pressures)
+        n1 = int(n/8)
+        n2 = int(n/4)
+        n3 = n1*3
+        logger.debug(f'Pressure list: {self.pressures}')
+        imbalance = False
+        for i, npoints in enumerate(self.pressures):
+            if npoints >= npcut:
+                imb = True
+                logger.debug(f'check pressure balance for i={i}')
+                for j in range(0, n2):
+                    k = (i+n3+j)%n
+                    if self.pressures[k] >= npcut:
+                        imb = False
+                        logger.debug(f'  found balancing pressure at {k}')
+                        break
+                if imb:
+                    logger.debug(f'  no balancing pressure was found')
+                    imbalance = True
+                    break
+        nsegments = len(list(filter(lambda x: x>=npcut, self.pressures)))
+        return ( (not imbalance), nsegments)
+    
+    def pressureDirection(self, points, npcut=1):
+        if self.parametersUpdated:
+            self.updatePressures(points)
+        v = np.zeros( (2) )
+        n = len(self.pressures)
+        dtheta = 2.0*math.pi/n
+        for i, npoints in enumerate(self.pressures):
+            if npoints >= npcut:
+                theta = (i+0.5)*dtheta
+                logger.debug(f'Pressure from theta={theta}')
+                v -= [math.cos(theta), math.sin(theta)]
+        logger.debug(f'  pressure vector: {v}')
+        v /= np.sqrt(v.dot(v))
+        return v
+    
+    def radius(self):
+        return 1.0
+
+    def distanceP(self, point):
+        return 0.0
+    
+    def expand(self, scale):
+        self.parametersUpdated = True
+        pass
+    
+    def expandTo(self, d):
+        self.parametersUpdated = True
+        pass
+    
+    def expandBy(self, d):
+        self.parametersUpdated = True
+        pass
+    
+    def shrink(self, scale):
+        self.parametersUpdated = True
+        pass
+
+    def shrinkTo(self, d):
+        self.parametersUpdated = True
+        pass
+
+    def shrinkBy(self, d):
+        self.parametersUpdated = True
+        pass
+
+    def moveBy(self, dx):
+        self.parametersUpdated = True
+        pass
+
+    def innerPoints(self, points):
+        inpoints = list(filter(lambda p: p.distanceP(p)<0.0, points))
+        return inpoints
+
+    def resize(self, points, resolution=0.0):
+        pass
+    
+    def nearByPoints(self, points, dcut=1.0):
+        v = list(filter(lambda p: self.distanceP(p)<dcut, points))
+        return v
+    
+    def fit(self, points):
+        pass
+
+    def draw(self, canvas, frame):
+        pass
+    
+class Circle1(Shape):
+    def __init__(self, parameters=[]):
+        super().__init__()
+        self.cx = 0.0
+        self.cy = 0.0
+        self.r = 0.0
+        if len(parameters) == 3:
+            self.cx = parameters[0]
+            self.cy = parameters[1]
+            self.r = parameters[2]
+        pass
+    
+    def radius(self):
+        return self.r
+
+    def initialValue(self, points):
+        n = len(points)
+        self.cx = sum(map(lambda xy: xy[0], points))/n
+        self.cy = sum(map(lambda xy: xy[1], points))/n
+        self.r = 0.1
+        pass
+
+    def distanceP(self, point):
+        d = math.sqrt( (point[0]-self.cx)**2 + (point[1]-self.cy)**2) - self.r
+        return d
+    
+    def distance(self, points):
+        n = len(points)
+        d = -1
+        if n>0:
+            vc = np.array([self.cx, self.cy]*n).reshape(n, 2)
+            vdiff = points-vc
+            vdistance = np.sqrt(vdiff[:,0]**2 + vdiff[:,1]**2)
+            d = np.min(vdistance)
+        return d
+    
+    def expand(self, scale):
+        self.r *= scale
+        self.parametersUpdated = True
+    
+    def expandTo(self, d):
+        self.r = d
+        self.parametersUpdated = True
+    
+    def expandBy(self, d):
+        #logger.debug(f'   ExpandBy r={self.r} {type(self.r)} {type(d)}')
+        self.r = self.r + d
+        #logger.debug(f'   ExpandBy after r={self.r}')
+        self.parametersUpdated = True
+    
+    def shrink(self, scale):
+        self.r *= scale
+        self.parametersUpdated = True
+
+    def shrinkTo(self, d):
+        self.r = d
+        self.parametersUpdated = True
+
+    def shrinkBy(self, d):
+        self.r -= d
+        self.parametersUpdated = True
+
+    def resize(self, points, resolution=0.0):
+        if len(points)==0:
+            return
+        d = self.distance(points)
+        if d < 0.0:
+            self.shrinkBy(-d)
+        else:
+            self.expandTo(d)
+        self.parametersUpdated = True
+
+    def moveBy(self, dx):
+        self.cx += dx[0]
+        self.cy += dx[1]
+        self.parametersUpdated = True
+
+    def fit(self, points):
+        pass
+
+    def draw(self, canvas, frame):
+        logger.debug(f'Overlay shape: xy=({self.cx},{self.cy}), r={self.r}')
+        cr = frame.xyToCR( (self.cx, self.cy))
+        r = frame.toPixelLength(self.r)
+        color1 = (100, 200, 100)
+        cv2.circle(canvas, center=cr, radius=r, color=color1,
+                   thickness=2, lineType=8)
+        cv2.circle(canvas, center=cr, radius=7, color=color1, thickness=-1)
+
+class LongCircle(Shape):
+    def __init__(self, parameters=[]):
+        super().__init__()
+        self.cx = 0.0
+        self.cy = 0.0
+        self.r = 0.0
+        self.l = 0.0
+        self.alpha = 0.0
+        if len(parameters) == 5:
+            self.cx = parameters[0]
+            self.cy = parameters[1]
+            self.r = parameters[2]
+            self.l = parameters[3]
+            self.alpha = parameters[4]
+        pass
+    
+    def initialValue(self, points):
+        n = len(points)
+        self.cx = sum(map(lambda xy: xy[0], points))/n
+        self.cy = sum(map(lambda xy: xy[1], points))/n
+        self.r = 0.1
+        self.l = 1.0
+        self.alpha = -math.pi/4
+        pass
+
+    def radius(self):
+        return self.r
+
+    def width(self):
+        return 2.0*self.r
+    
+    def centerCircleL(self):
+        cx1 = self.cx - 0.5*self.l*math.cos(self.alpha)
+        cy1 = self.cy - 0.5*self.l*math.sin(self.alpha)
+        return (cx1, cy1)
+    
+    def centerCircleR(self):
+        cx1 = self.cx + 0.5*self.l*math.cos(self.alpha)
+        cy1 = self.cy + 0.5*self.l*math.sin(self.alpha)
+        return (cx1, cy1)
+    
+    def selectorForSubShape(self, subShape):
+        theta = 0.0
+        dtheta = 0.0
+        beta = math.atan2(self.r, self.l/2.0)
+        #logger.debug(f'r={self.r}, l/2={self.l/2}')
+        if subShape == 'CircleL':
+            theta = math.pi + self.alpha
+            dtheta = beta
+        elif subShape == 'CircleR':
+            theta = self.alpha
+            dtheta = beta
+        elif subShape == 'LineT':
+            theta = math.pi/2.0 + self.alpha
+            dtheta = math.pi/2.0 - beta
+        elif subShape == 'LineB':
+            theta = -math.pi/2.0 + self.alpha
+            dtheta = math.pi/2.0 - beta
+        vref = np.array( (math.cos(theta), math.sin(theta) ) )
+        cosThetaCut = math.cos(dtheta)
+        #logger.debug(f'Selector for {subShape} theta={theta}, cosThetaCut={cosThetaCut} beta={beta}')
+        selector = partial(self.dircheck, vref=vref, cosThetaCut=cosThetaCut)
+        return selector
+
+    def selectPoints(self, points, subShape):
+        selector = self.selectorForSubShape(subShape)
+        v = list(filter(selector, points))
+        logger.debug(f'  Selected {len(v)} points around {subShape}')
+        return v
+    
+    def distanceP_circleL(self, point):
+        d = 1.0E+6
+        selector = self.selectorForSubShape('CircleL')
+        #logger.debug(f'selector for CircleL point={point}')
+        if selector(point):
+            cA = self.centerCircleL()
+            d = math.sqrt( (point[0]-cA[0])**2 + (point[1]-cA[1])**2) - self.r
+            #logger.debug(f'Selector succeeded {cA} {d}')
+        else:
+            #logger.debug('Selector failed')
+            pass
+        return d
+
+    def distanceP_circleR(self, point):
+        d = 1.0E+6
+        selector = self.selectorForSubShape('CircleR')
+        if selector(point):
+            cA = self.centerCircleR()
+            d = math.sqrt( (point[0]-cA[0])**2 + (point[1]-cA[1])**2) - self.r
+        return d
+
+    def distanceP_lineT(self, point):
+        d = 1.0E+6
+        selector = self.selectorForSubShape('LineT')
+        theta = math.pi/2.0 + self.alpha
+        vref = np.array( (math.cos(theta), math.sin(theta)) )
+        if selector(point):
+            pp = np.array( (point[0]-self.cx, point[1]-self.cy) )
+            d = vref.dot(pp) - self.r
+        return d
+
+    def distanceP_lineB(self, point):
+        d = 1.0E+6
+        selector = self.selectorForSubShape('LineB')
+        theta = -math.pi/2.0 + self.alpha
+        vref = np.array( (math.cos(theta), math.sin(theta)) )
+        if selector(point):
+            pp = np.array( (point[0]-self.cx, point[1]-self.cy) )
+            d = vref.dot(pp) - self.r
+        return d
+
+    def distanceP_circle(self, point):
+        d1 = self.distanceP_circleL(point)
+        d2 = self.distanceP_circleR(point)
+        return min(d1, d2)
+
+    def distanceP_line(self, point):
+        d1 = self.distanceP_lineT(point)
+        d2 = self.distanceP_lineB(point)
+        return min(d1, d2)
+
+    def distanceP(self, point):
+        d1 = self.distanceP_circle(point)
+        d2 = self.distanceP_line(point)
+        return min(d1, d2)
+    
+    def expand(self, scale):
+        self.r *= scale
+        self.l *= scale
+        self.parametersUpdated = True
+    
+    def expandTo(self, d):
+        self.r = d
+        self.parametersUpdated = True
+    
+    def expandBy(self, d):
+        self.r += d
+        self.parametersUpdated = True
+    
+    def shrink(self, scale):
+        self.r *= scale
+        self.l *= scale
+        self.parametersUpdated = True
+
+    def shrinkTo(self, d):
+        self.r = d
+        self.parametersUpdated = True
+
+    def shrinkBy(self, d):
+        self.r -= d
+        self.parametersUpdated = True
+
+    def resize(self, points, resolution):
+        dl, dc = 0.0, 0.0
+        pointsLT = self.selectPoints(points, 'LineT')
+        pointsLB = self.selectPoints(points, 'LineB')
+        pointsL = pointsLT + pointsLB
+        if len(pointsL)>0:
+            dl = self.distance(pointsL)
+        pointsCL = self.selectPoints(points, 'CircleL')
+        pointsCR = self.selectPoints(points, 'CircleR')
+        pointsC = pointsCL + pointsCR
+        if len(pointsC)>0:
+            dc = self.distance(pointsC)
+        #
+        logger.debug(f'LongCircle resizing: dl={dl}, dc={dc}, r={self.r}, l={self.l} alpha={self.alpha}')
+        if dc < 0.0 and dc < 0.0:
+            if dl < 0.0 and dc < 0.0:
+                if dl < dc:
+                    logger.info(f'decrease r by {2*resolution}')
+                    self.r -= 2*resolution
+                elif dc < dl:
+                    logger.info(f'decrease l by {2*resolution}')
+                    self.l -= 2*resolution
+            elif dl < 0.0:
+                logger.info(f'decrease r by {2*resolution}')
+                self.r -= 2*resolution
+            elif dc < 0.0:
+                logger.info(f'decrease l by {2*resolution}')
+                self.l -= 2*resolution
+                pass
+        elif dc < 0.0 and dl > 0.0:
+            logger.info(f'decrease l by {2*resolution}')
+            self.l -= 2*resolution            
+        elif dl < 0.0 and dc > 0.0:
+            logger.info(f'decrease rby {2*resolution}')
+            self.r -= 2*resolution            
+        elif dl > 0.0:
+            logger.info(f'increase r by {2*resolution}')
+            self.r += resolution
+        elif dc > 0.0:
+            logger.info(f'increase l by {resolution}')
+            #self.l += resolution
+            pass
+        # if dl < 0.0 or dc < 0.0:
+        #     if dl < 0.0:
+        #         self.r -= resolution
+        #     #if dc < 0.0:
+        #     #    #self.l -= resolution
+        #     logger.debug('Shrink')
+        # else:
+        #     logger.debug('Expand')
+        #     if dl < dc:
+        #         logger.debug('Increase r')
+        #         self.r += dl/2.0
+        #     elif dc < dl:
+        #         logger.debug('Increase l')
+        #         #self.l += dc/2.0
+        logger.debug(f'  -> after resizing: r={self.r}, l={self.l}')
+        self.parametersUpdated = True
+        
+    def moveBy(self, dx):
+        self.cx += dx[0]
+        self.cy += dx[1]
+        self.parametersUpdated = True
+
+    def fit(self, points):
+        pass
+
+    def draw(self, canvas, frame):
+        logger.debug(f'Overlay LongCircle: xy=({self.cx},{self.cy}), r={self.r}, l={self.l}, alpha={self.alpha}')
+        color1 = (100, 200, 100)
+        cr = frame.xyToCR( (self.cx, self.cy))
+        r = frame.toPixelLength(self.r)
+        l = frame.toPixelLength(self.l)
+        # Circles
+        cx1 = self.cx - 0.5*self.l*math.cos(self.alpha)
+        cy1 = self.cy - 0.5*self.l*math.sin(self.alpha)
+        cx2 = self.cx + 0.5*self.l*math.cos(self.alpha)
+        cy2 = self.cy + 0.5*self.l*math.sin(self.alpha)
+        cr1 = frame.xyToCR( (cx1, cy1) )
+        cr2 = frame.xyToCR( (cx2, cy2) )
+        cv2.circle(canvas, center=cr1, radius=r, color=color1, 
+                   thickness=2, lineType=8)
+        cv2.circle(canvas, center=cr2, radius=r, color=color1, 
+                   thickness=2, lineType=8)
+        cv2.circle(canvas, center=cr, radius=7, color=color1, thickness=-1)
+
+        # Lines
+        px1 = self.cx - 0.5*self.l*math.cos(self.alpha)-self.r*math.sin(self.alpha)
+        py1 = self.cy - 0.5*self.l*math.sin(self.alpha)+self.r*math.cos(self.alpha)
+        px2 = self.cx + 0.5*self.l*math.cos(self.alpha)-self.r*math.sin(self.alpha)
+        py2 = self.cy + 0.5*self.l*math.sin(self.alpha)+self.r*math.cos(self.alpha)
+        px3 = self.cx - 0.5*self.l*math.cos(self.alpha)+self.r*math.sin(self.alpha)
+        py3 = self.cy - 0.5*self.l*math.sin(self.alpha)-self.r*math.cos(self.alpha)
+        px4 = self.cx + 0.5*self.l*math.cos(self.alpha)+self.r*math.sin(self.alpha)
+        py4 = self.cy + 0.5*self.l*math.sin(self.alpha)-self.r*math.cos(self.alpha)
+        cr1 = frame.xyToCR( (px1, py1) )
+        cr2 = frame.xyToCR( (px2, py2) )
+        cv2.line(canvas, cr1, cr2, color=color1, thickness=2)
+        cr1 = frame.xyToCR( (px3, py3) )
+        cr2 = frame.xyToCR( (px4, py4) )
+        cv2.line(canvas, cr1, cr2, color=color1, thickness=2)
+
+class CombinedImageFrame:
+    def __init__(self, images, nrows=0, ncolumns=0):
+        self.subImages = images
+        self.nrows = 1000
+        self.ncolumns = 1000
+        self.width = 0
+        self.height = 0
+        self.offset = []
+        self.canvas = None
+        self.canvasOk = False
+        if nrows == 0 and ncolumns == 0:
+            self.nrows = 1000
+            self.ncolumns = 1000
+        else:
+            self.nrows = nrows
+            self.ncolumns = ncolumns
+        self.checkFrame()
+        pass
+
+    def pixelSizesXY(self):
+        return ( (self.width/self.ncolumns, self.height/self.nrows) )
+
+    def checkFrame(self):
+        xmin = min(map(lambda x: x.xyOffset[0]-x.physicalWidth()/2, self.subImages))
+        xmax = max(map(lambda x: x.xyOffset[0]+x.physicalWidth()/2, self.subImages))
+        ymin = min(map(lambda x: x.xyOffset[1]-x.physicalHeight()/2, self.subImages))
+        ymax = max(map(lambda x: x.xyOffset[1]+x.physicalHeight()/2, self.subImages))
+        dx = xmax - xmin
+        dy = ymax - ymin
+        if self.nrows == self.ncolumns:
+            if dx > dy:
+                ymax += (dx-dy)
+            elif dy > dx:
+                xmax += (dy-dx)
+        self.offset = [ (xmax + xmin)/2.0, (ymax + ymin)/2.0]
+        self.width = xmax - xmin
+        self.height = ymax - ymin
+        logger.debug(f'CombinedImageFrame: ({xmin}:{xmax}, {ymin}:{ymax})')
+        logger.debug(f'  width={self.width}, height={self.height}')
+        logger.debug(f'  offset={self.offset}')
+        logger.debug(f'  ncolumns={self.ncolumns}, nrows={self.nrows}')
+        
+    def createCanvas(self):
+        self.canvas = np.ones( (self.nrows, self.ncolumns, 3), np.uint8)*200
+        self.canvasOk = True
+        return self.canvas
+
+    def xyToCR(self, xy):
+        psizes = self.pixelSizesXY()
+        c = int(self.ncolumns/2 + (xy[0]-self.offset[0])/psizes[0])
+        r = int(self.nrows/2 - (xy[1]-self.offset[1])/psizes[1])
+        return (c, r)
+
+    def crToXY(self, cr):
+        psizes = self.pixelSizesXY()
+        x = self.offset[0] + (cr[0]-self.ncolumns/2)*psizes[0]
+        y = self.offset[1] - (cr[1]-self.nrows/2)*psizes[1]
+        return (x, y)
+
+    def toPixelLength(self, l):
+        psizes = self.pixelSizesXY()
+        return int(l/psizes[0])
+
+    def toGlobalLength(self, l):
+        psizes = self.pixelSizesXY()
+        return l*psizes[0]
+        
+    def overlayImages(self, image):
+        xmin = image.xyOffset[0] - image.physicalWidth()/2.0
+        xmax = image.xyOffset[0] + image.physicalWidth()/2.0
+        ymin = image.xyOffset[1] - image.physicalHeight()/2.0
+        ymax = image.xyOffset[1] + image.physicalHeight()/2.0
+        dx = xmax - xmin
+        dy = ymax - ymin
+        c1 = int(self.ncolumns/self.width*dx)
+        r1 = int(self.nrows/self.height*dy)
+        img = image.readImage()
+        img = cv2.resize(img, (c1, r1) )
+        psizes = self.pixelSizesXY()
+        c2 = int(self.ncolumns/2 + (xmin - self.offset[0])/psizes[0])
+        r2 = int(self.nrows/2 - (ymax - self.offset[1])/psizes[1])
+        logger.debug(f'  image offset={image.xyOffset}')
+        logger.debug(f'    superimpose to {r2}:{r2+r1},{c2}:{c2+c1}')
+        self.canvas[r2:r2+r1,c2:c2+c1,:] = img
+
+    def overlayPoints(self, points):
+        for p in points:
+            cr = self.xyToCR(p)
+            #logger.debug(f'  p={p} ->  {cr}')
+            cv2.circle(self.canvas, center=cr, radius=5, color=(100, 150, 200),
+                       thickness=-1)
+            
+    def overlayShape(self, shape):
+        if shape:
+            shape.draw(self.canvas, self)
+        
+    def createImage(self):
+        self.createCanvas()
+        for x in self.subImages:
+            self.overlayImages(x)
+        return self.canvas
+    
+class ShapeFit:
+    def __init__(self):
+        self.outputDir = '.'
+        self.shape = None
+        self.imageFrame = None
+
+    def setOutputDir(self, dname):
+        self.outputDir = dname
+
+    def setInitialShape(self, shape):
+        self.shape = shape
+        
+    def readLog(self, logname):
+        imageXY = {}
+        dn = os.path.dirname(logname)
+        images = list(filter(lambda x: x.endswith('.jpg'), os.listdir(dn)))
+        if os.path.exists(logname):
+            re1 = re.compile('Photo at \(([\d+-.]+), ([\d+-.]+)\)')
+            re2 = re.compile('file=(.+\.jpg)')
+            re1 = re.compile('([\d+-.]+) ([\d+-.]+) ([\d+-.]+)')
+            f = open(logname, 'r')
+            ip = 0
+            for line in f.readlines():
+                if len(line)==0 or line[0]=='#': continue
+                mg1 = re1.search(line)
+                x, y, z = -2.0E+6, -2.0E+6, 0.0
+                fname = images[ip]
+                if mg1:
+                    mm = 0.001
+                    x, y = float(mg1.group(1))*mm, -float(mg1.group(2))*mm
+                    ip += 1
+                if fname!='' and x > -1.0E+6:
+                    i = fname.rfind('\\')
+                    fname = fname[i+1:]
+                    imageXY[fname] = (x, y)
+        return imageXY
+
+    def findEdge(self, img, wsum, tgap, thr1=50, thr2=100):
+        #return cv2.Canny(img, thr1, thr2)
+        output = {}
+        points1 = locateEdgePoints1(img, 0, output, wsum=wsum, tgap=tgap)
+        points2 = locateEdgePoints1(img, 1, output, wsum=wsum, tgap=tgap)
+        if len(points1) > len(points2):
+            points = points1
+        else:
+            points = points2
+        return points
+
+    def findEdgePoints(self, wsum=200, tgap=12):
+        points = []
+        for imageData in self.imageFrame.subImages:
+            if type(imageData)!=type(None):
+                frame = CombinedImageFrame([imageData], 4000, 6000)
+                #points.append(frame.offset)
+                #continue
+                imgbw = cv2.cvtColor(imageData.image, cv2.COLOR_BGR2GRAY)
+                vp = self.findEdge(imgbw, wsum=200, tgap=8)
+                vp = list(map(lambda cr: frame.crToXY(cr), vp))
+                points.extend(vp)
+        return points
+    
+    def combineImages(self, images):
+        self.imageFrame = CombinedImageFrame(images)
+        self.imageFrame.createImage()
+
+    def run(self, images, expand=True):
+        dr = [0.1, 0.04, 0.01, 0.004, 0.001]
+        idr, ndr = 0, len(dr)
+        #
+        self.combineImages(images)
+        points = self.findEdgePoints(wsum=100, tgap=10)
+        logger.debug(f'ShapeFit found {len(points)} edge points')
+        self.shape.initialValue(points)
+        self.imageFrame.overlayPoints(points)
+        self.shape.resize(points, dr[idr])
+        dc2 = 0.0
+        npcutIn = 2
+        nsegCut = 3
+        for itry in range(200):
+            points2 = self.shape.nearByPoints(points, dr[idr])
+            self.shape.resize(points2, dr[idr])
+            logger.debug(f'  {len(points2)} near-by points')
+            balanced, nsegments = self.shape.pressureBalanced(points2)
+            if balanced and nsegments >= nsegCut:
+                logger.debug(f'Pressure balanced {itry} idr={idr}, stop optimization')
+                #self.shape.fit(points2)
+                if idr == ndr-1:
+                    break
+                else:
+                    idr += 1
+            elif balanced == 2:
+                self.shape.shrink(0.9)
+            elif nsegments == 0:
+                self.shape.expandBy(dr[idr])
+            else:
+                logger.debug(f'Pressure imbalance {itry} idr={idr}')
+                dc = self.shape.pressureDirection(points2)*dr[idr]
+                dc1 = np.sqrt(np.sum(dc*dc))
+                logger.debug(f'  dc={dc}, dc1={dc1}, dc2={dc2}')
+                logger.debug(f'  ShapeFit moveBy {dc}')
+                self.shape.moveBy(dc/2.0)
+                dc2 = dc1
+        logger.info(f'Shape fit finished after {itry} iterations')
+        self.imageFrame.overlayShape(self.shape)
+        return (self.imageFrame.canvas, self.shape, points2)
 
 class CircleFit:
     def __init__(self):
@@ -32,20 +717,27 @@ class CircleFit:
         
     def readLog(self, logname):
         imageXY = {}
+        dn = os.path.dirname(logname)
+        images = list(filter(lambda x: x.endswith('.jpg'), os.listdir(dn)))
         if os.path.exists(logname):
             re1 = re.compile('Photo at \(([\d+-.]+), ([\d+-.]+)\)')
             re2 = re.compile('file=(.+\.jpg)')
+            re1 = re.compile('([\d+-.]+) ([\d+-.]+) ([\d+-.]+)')
             f = open(logname, 'r')
+            ip = 0
             for line in f.readlines():
                 if len(line)==0 or line[0]=='#': continue
                 mg1 = re1.search(line)
-                mg2 = re2.search(line)
-                fname, x, y = '', -2.0E+6, -2.0E+6
+                #mg2 = re2.search(line)
+                #fname, x, y = '', -2.0E+6, -2.0E+6
+                x, y, z = -2.0E+6, -2.0E+6, 0.0
+                fname = images[ip]
                 if mg1:
                     mm = 0.001
                     x, y = float(mg1.group(1))*mm, float(mg1.group(2))*mm
-                if mg2:
-                    fname = mg2.group(1)
+                    ip += 1
+                #if mg2:
+                #    fname = mg2.group(1)
                 if fname!='' and x > -1.0E+6:
                     i = fname.rfind('\\')
                     fname = fname[i+1:]
@@ -73,7 +765,7 @@ class CircleFit:
         c = int( (x - BL[0])/dw)
         r = int(h - ( (y - BL[1])/dh) )
         l2 = l/dw
-        print('l=', l, ', dw=', dw, ' => ', l2)
+        #print('l=', l, ', dw=', dw, ' => ', l2)
         return (c, r, l2)
 
     def calcScale(self, w, h, xy):
@@ -92,7 +784,7 @@ class CircleFit:
         c, r = self.toGlobal(x, y, w, h, w0, (x0, y0))
         #c = int( (x - x0)/dw)
         #r = int(h - ( (y - y0)/dh) )
-        print('c, r = ', c, r)
+        #print('c, r = ', c, r)
         return (scale, c, r)
 
 
@@ -174,7 +866,7 @@ class CircleFit:
         #mean1 = statistics.mean(data1)
         #stdev1 = statistics.stdev(data1)
         #print('mean of distance1 = %f'%mean1)
-        print('pars1')
+        print('findCircle1: pars1, ', len(goodPoints1))
         print(pars1)
     
         outliers = []
@@ -185,13 +877,13 @@ class CircleFit:
             vy1.append(p[1])
             vx = np.array(vx1)
             vy = np.array(vy1)
-                    
+            
 
         pars2 = self.findCircle2(goodPoints1)
         for i, p in enumerate(goodPoints1):
             d2_m = (self.distancePointToCircle(*pars2, p))
             d2 = abs(d2_m)
-            print('  Distance from circle to goodpoint1[%d]=%7.4f' % (i, d2_m) )
+            #print('  Distance from circle to goodpoint1[%d]=%7.4f' % (i, d2_m) )
             if d2 < thr2:
                 goodPoints2.append(p)
                 data2.append(d2_m)
@@ -217,21 +909,26 @@ class CircleFit:
     
     
     def findCircle1(self, points):
+        if len(points) == 0:
+            return [-27.0, 27.0, 1.5]
         circle = None
         xsum, ysum = 0.0, 0.0
         num = len(points)
         for p in points:
             xsum += p.x()
             ysum += p.y()
-        xpos = xsum/num
-        ypos = ysum/num
+        if num > 0:
+            xpos = xsum/num
+            ypos = ysum/num
+        else:
+            xpos, ypos = 0.0, 0.0
         print('xpos, ypos', xpos, ypos)
         pars1 = [xpos, ypos, 1.45]
         pars = [xpos, ypos, 1.45]
         f = [ 0.0, 0.0, 0.0]
         alpha = 0.001
         data = []
-        print('Initial values: ', pars)
+        #print('Initial values: ', pars)
         
         for i in range(3):
             f[0] = -self.dCda(pars1[0], pars1[1], pars1[2], points)
@@ -281,6 +978,8 @@ class CircleFit:
     
     
     def findCircle2(self, points):
+        if len(points) == 0:
+            return [-27.0, 27.0, 1.5]
         #figPrefix=args.FlexNumber
         figPrefix='JPFlex30_b_TL'
         circle = None
@@ -289,8 +988,11 @@ class CircleFit:
         for p in points:
             xsum += p.x()
             ysum += p.y()
-        xpos = xsum/num
-        ypos = ysum/num
+        if num > 0:
+            xpos = xsum/num
+            ypos = ysum/num
+        else:
+            xpos, ypos = 0.0, 0.0
         print('xpos, ypos', xpos, ypos)
         pars1 = [xpos, ypos, 1.5]
         f = [ 0.0, 0.0, 0.0]
@@ -519,8 +1221,8 @@ class SlotFit:
         for i, p in enumerate(points):
             d1_m, pos1 = self.distancePointToCircle(*pars1, p)
             d1 = abs(d1_m)
-            print(pos1)
-            print('  Distance from circle to point[%d]=%7.4f' % (i, d1_m) )
+            #print(pos1)
+            #print('  Distance from circle to point[%d]=%7.4f' % (i, d1_m) )
             if d1 < thr1:
                 goodPoints1.append(p)
             entry1 = d1_m
@@ -557,8 +1259,8 @@ class SlotFit:
         for i, p in enumerate(goodPoints1):
             d2_m, pos2 = (self.distancePointToCircle(*pars2, p))
             d2 = abs(d2_m)
-            print(pos2)
-            print('  Distance from circle to goodpoint1[%d]=%7.4f' % (i, d2_m) )
+            #print(pos2)
+            #print('  Distance from circle to goodpoint1[%d]=%7.4f' % (i, d2_m) )
             if d2 < thr2:
                 goodPoints2.append(p)
             if (pos2 == 'dC1'):

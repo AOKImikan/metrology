@@ -6,9 +6,12 @@
 #                           x (towards right) and y (towards top)
 #--------------------------------------------------------------------
 import math
+import logging
 
 from pmm.prec import *
 from pmm.model import *
+
+logger = logging.getLogger(__name__)
 
 class SensorOuter150um:
     def __init__(self):
@@ -152,14 +155,14 @@ class BareModuleFront(ComponentDesign):
             'SensorB': TargetData('SensorB', 'LineH', 0.0, self.sensor.xmin()),
             'SensorL': TargetData('SensorL', 'LineV', self.sensor.ymin(), 0.0),
             'SensorR': TargetData('SensorR', 'LineV', self.sensor.ymax(), 0.0),
-            'FmarkTL': TargetData('FmarkTL', 'Circle', -x2, y2), 
-            'FmarkBL': TargetData('FmarkBL', 'Circle', -x2, -y2), 
-            'FmarkBR': TargetData('FmarkBR', 'Circle', x2, -y2), 
-            'FmarkTR': TargetData('FmarkTR', 'Circle', x2, y2), 
-            'AsicFmarkTL': TargetData('AsicFmarkTL', 'Circle', -x2, y2), 
-            'AsicFmarkBL': TargetData('AsicFmarkBL', 'Circle', -x2, -y2), 
-            'AsicFmarkBR': TargetData('AsicFmarkBR', 'Circle', x2, -y2), 
-            'AsicFmarkTR': TargetData('AsicFmarkTR', 'Circle', x2, y2), 
+        }
+        self.nominalValues = {
+            'AsicX':   (42.187+0.07/2, 0.070/2),
+            'AsicY':   (40.255+0.07/2, 0.070/2),
+            'SensorX':   (39.500+0.05/2, 0.050/2),
+            'SensorY':   (41.100+0.05/2, 0.100),
+            'AsicZ':   (0.150+0.025/2, (0.025+0.010)/2), 
+            'SensorZ':   (0.325+0.09/2, (0.09+0.04)/2), 
             }
     def targetString(self, tag, offsetXY, zoom):
         tdata = None
@@ -235,7 +238,7 @@ class Rd53aModule:
             'AsicToFlexR': (0.840, 0.050), 
             'SensorToFlexT': (0.315, 0.050), 
             'SensorToFlexB': (0.280, 0.050), 
-            'Angle (deg.)': (90.0, 0.1), 
+            'Angle (deg.)': (90.0, 10.0), 
             'AsicX': (42.137, 0.020), 
             'AsicY': (40.335, 0.020), 
             'SensorX': (39.500, 0.005), 
@@ -299,6 +302,20 @@ class Rd53aModule:
 class ITkPixV11Module(Rd53aModule):
     def __init__(self):
         super().__init__()
+        self.nominalValues = {
+            'FlexX':   (39.600, 0.100),
+            'FlexY':   (40.300, 0.100),
+            'SensorY': (41.100, 0.050),
+            'AsicX':   (42.190, 0.050),
+            'PickupZ': (0.550, 0.050),
+            'HVCapacitorZ': (2.251, 0.200), 
+            'ConnectorZ':   (1.971, 0.100),
+            'Angle': (0.0, 10.0), 
+            'FmarkDistanceTR_x': (2.212, 0.100), 
+            'FmarkDistanceTR_y': (0.750, 0.100), 
+            'FmarkDistanceBL_x': (2.212, 0.100), 
+            'FmarkDistanceBL_y': (0.750, 0.100), 
+            }
 
 class ITkPixV1xFlex:
     def __init__(self):
@@ -315,10 +332,19 @@ class ITkPixV1xFlex:
             'FiducialTL': TargetData('FiducialTL', 'Circle', -flexX/2, -flexY/2),
             'FiducialBR': TargetData('FiducialBR', 'Circle', flexX/2, flexY/2),
         }
-    
+        self.nominalValues = {
+            'FlexX':   (39.600, 0.100),
+            'FlexY':   (40.300, 0.100),
+            'PickupZ': (0.200, 0.050),
+            'HVCapacitorZ': (1.901, 0.200), 
+            'ConnectorZ':   (1.621, 0.100),
+            'HoleTL_diameter':   (3.000, 0.100),
+            'SlotBR_width':   (3.000, 0.100),
+            }
+ 
 def createModule(componentType):
     component = None
-    logger.info(f'Create module design for {componentType}')
+    #logger.info(f'Create module design for {componentType}')
     if componentType == 'Rd53aModule':
         component = Rd53aModule()
     elif componentType == 'ITkPixV1xModule':
@@ -328,5 +354,5 @@ def createModule(componentType):
         component = BareModuleFront()
     elif componentType == 'ITkPixV1xFlex':
         component = ITkPixV1xFlex()
-    logger.info(f'  design {component}')
+    #logger.info(f'  design {component}')
     return component

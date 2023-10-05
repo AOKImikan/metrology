@@ -1,4 +1,5 @@
 {
-    "scanDir": "/nfs/space3/tkohno/atlas/ITkPixel/Metrology/data", 
-    "workDir": "/nfs/space3/tkohno/atlas/ITkPixel/Metrology/PmmData"
+    "scanDir": "/nfs/space3/itkpixel/Metrology/data", 
+    "workDir": "/nfs/space3/itkpixel/Metrology/results",
+    "archiveDir": "/nfs/space3/tkohno/atlas/ITkPixel/Metrology/results"
 }
