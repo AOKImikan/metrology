@@ -17,6 +17,20 @@ csv形式でも保存している（表形式で見やすいから）
 の3つ。   
 引数を与えることで、db.jsonのresultsの値についてヒストグラムを作ることができる。
 
+### 関連するモジュール
++ jsonAnalysis_*.py   
+ReadJsonを自動化した。pcb, baremodule, moduleのそれぞれある。   　
+すべてのresultsの項目のヒストグラムの保存と、それぞれの項目についてのsummaryをpandas.DataFrameにする。
+
++ myModules/data_*.py   
+特定のシリアルナンバーについて、使用するスキャンのディレクトリを指定するために作った。   
+「使わないシリアルナンバー」と「00Xのうち、最大値じゃないものを使うシリアルナンバー」を指定することができる。
+
+## pickleの解析
+### fiducial markの相対位置を見る
++ validateSquare.py
+Fmarkの距離と角度を計算してヒストグラムにする
+
 ## ReadDataToDF
    data.pickleから、scanpointsとanalysisを抽出してpandas.DataFrameにする。
   .pickleと.csvで保存する。
