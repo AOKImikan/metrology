@@ -1,4 +1,7 @@
-# macro
+# モジュール
+macro/の中においてある。   
+ここでは概要を述べる。詳しくはmacroの中のreadmeを参照。
+
 ## data.pickleから値を読み取る
 + ReadDataToDF_PCB.py
 + ReadDataToDF_BareModule.py
@@ -29,18 +32,8 @@ ReadJsonを自動化した。pcb, baremodule, moduleのそれぞれある。   �
 ## pickleの解析
 ### fiducial markの相対位置を見る
 + validateSquare.py
-Fmarkの距離と角度を計算してヒストグラムにする
+Fmarkの距離と角度を計算してヒストグラムにする   
 
-## ReadDataToDF
-   data.pickleから、scanpointsとanalysisを抽出してpandas.DataFrameにする。
-  .pickleと.csvで保存する。
-## ReadJson
-  db.jsonのresultsの各項目について、ヒストグラムを作成する。
-### jsonAnalysis
-ReadJsonを自動化した。　　
-すべてのヒストグラムの保存と、それぞれの項目についてsummaryをpandas.DataFrameにする。
-
-## validateSquare
 Fmarkの距離と角度を計算してヒストグラムにする。結果はcsvで保存する。　　
 引数でAsicFmarkかFlexFmarkか指定できる。
 Fmark間の距離についてはTop,Bottom,Left,Right、   
@@ -52,7 +45,9 @@ Fmark間の距離についてはTop,Bottom,Left,Right、
 ただし、引数に何を指定しても、毎回resultsとして作られるdataframeは同じ。要改善…。   
 このresultsのdataframeもcsvとして保存される。   
 保存先＞data/validateSQ
-    
+
+
+## 
 ## marginplot_2
 ## getFilelist
 ## STDofZ
@@ -66,7 +61,7 @@ Fmark間の距離についてはTop,Bottom,Left,Right、
 ## draw
 
 
-# data
+# 解析した結果のありか
 ## scanProcessor data
 ### **_AnalysisData  
 + PCB
