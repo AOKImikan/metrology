@@ -11,7 +11,7 @@ def getFilelist():
     files = glob.glob("/nfs/space3/aoki/Metrology/HR/MODULE/20UPGM*")
 
     specialSNs = {
-        '20UPGM22601066':'nan',
+        '20UPGM22601066':'001',
         '20UPGM22601034':'001',
         '20UPGM22601049':'005',
         '20UPGM22601027':'001',  # only 001

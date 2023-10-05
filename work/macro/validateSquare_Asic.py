@@ -192,7 +192,8 @@ def valSquare(df):
     listSN = []
     # group analysis data by tags
     grouptag_ana = df.groupby(['serial_number'])
-    snList = df['serial_number'].unique()    
+    snList = df['serial_number'].unique()
+    print(df['tags'].unique())
     for sn in snList:
         exdf = grouptag_ana.get_group((sn))
         listSN.append(sn)

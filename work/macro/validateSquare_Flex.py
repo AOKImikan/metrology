@@ -8,90 +8,42 @@ import numpy as np
 import pandas as pd
 import pmm
 import re
+import time
+import argparse
 import matplotlib.pyplot as plt
-
-def hist4(df):
-    fig = plt.figure(figsize=(10,9))
-    axes = fig.subplots(2,2,sharex='col',sharey='all')
-    axes[0,0].annotate(f'$\sigma={df["range_T"].std():.5f}$',
-                       xy=(0.6, 0.9), xycoords='axes fraction', fontsize=15)
-    axes[0,0].annotate(f'entries={df["range_T"].count()}',
-                       xy=(0.01, 1.01), xycoords='axes fraction', fontsize=15)
-    axes[0,0].annotate(f'mean={df["range_T"].mean():.4g}',
-                       xy=(0.6, 0.8), xycoords='axes fraction', fontsize=15)
-   
-    axes[1,0].annotate(f'$\sigma={df["range_B"].std():.5f}$',
-                       xy=(0.1, 0.9), xycoords='axes fraction', fontsize=15)
-    axes[1,0].annotate(f'entries={df["range_B"].count()}',
-                       xy=(0.01, 1.01), xycoords='axes fraction', fontsize=15)
-    axes[1,0].annotate(f'mean={df["range_B"].mean():.4g}',
-                       xy=(0.1, 0.8), xycoords='axes fraction', fontsize=15)
-   
-    axes[0,1].annotate(f'$\sigma={df["range_L"].std():.5f}$',
-                       xy=(0.6, 0.9), xycoords='axes fraction', fontsize=15)
-    axes[0,1].annotate(f'entries={df["range_L"].count()}',
-                       xy=(0.01, 1.01), xycoords='axes fraction', fontsize=15)
-    axes[0,1].annotate(f'mean={df["range_L"].mean():.4g}',
-                       xy=(0.6, 0.8), xycoords='axes fraction', fontsize=15)
-
-    axes[1,1].annotate(f'$\sigma={df["range_R"].std():.5f}$',
-                       xy=(0.6, 0.9), xycoords='axes fraction', fontsize=15)
-    axes[1,1].annotate(f'entries={df["range_R"].count()}',
-                       xy=(0.01, 1.01), xycoords='axes fraction', fontsize=15)
-    axes[1,1].annotate(f'mean={df["range_R"].mean():.4g}',
-                       xy=(0.6, 0.8), xycoords='axes fraction', fontsize=15)
     
-    axes[0,0].set_title('range_T',fontsize=16)
-    axes[1,0].set_title('range_B',fontsize=16)
-    axes[0,1].set_title('range_L',fontsize=16)
-    axes[1,1].set_title('range_R',fontsize=16)
-  #  axes.set_xticks(labelsize=16)
+def hist(df, name, arg, AF):
+    # define histgram name
+    histname = name + '_' + arg
 
-    axes[0,0].hist(df['range_T'], bins=10, alpha=1, histtype="stepfilled",edgecolor='black')
-    axes[1,0].hist(df['range_B'], bins=10, alpha=1, histtype="stepfilled",edgecolor='black')
-    axes[0,1].hist(df['range_L'], bins=10, alpha=1, histtype="stepfilled",edgecolor='black')
-    axes[1,1].hist(df['range_R'], bins=10, alpha=1, histtype="stepfilled",edgecolor='black')
-    # set hist style
-    axes[0,0].tick_params(labelsize=16)
-    axes[0,1].tick_params(labelsize=16)
-    axes[1,0].tick_params(labelsize=16)
-    axes[1,1].tick_params(labelsize=16)
-    plt.savefig(f'resultsHist/FlexFmark_range_hist.jpg')  #save as jpeg
-    plt.show()
-    
-def hist2(df):
-    fig = plt.figure(figsize=(10,5))
-    axes = fig.subplots(1,2,sharex='col',sharey='all')
-    axes[0].annotate(f'$\sigma={df["angle_TR"].std():.5f}$',
-                       xy=(0.1, 0.9), xycoords='axes fraction', fontsize=15)
-    axes[0].annotate(f'entries={df["angle_TR"].count()}',
-                       xy=(0.01, 1.01), xycoords='axes fraction', fontsize=15)
-    axes[0].annotate(f'mean={df["angle_TR"].mean():.4g}',
-                       xy=(0.1, 0.8), xycoords='axes fraction', fontsize=15)
-   
-    axes[1].annotate(f'$\sigma={df["angle_BL"].std():.5f}$',
-                       xy=(0.1, 0.9), xycoords='axes fraction', fontsize=15)
-    axes[1].annotate(f'entries={df["angle_BL"].count()}',
-                       xy=(0.01, 1.01), xycoords='axes fraction', fontsize=15)
-    axes[1].annotate(f'mean={df["angle_BL"].mean():.4g}',
-                       xy=(0.1, 0.8), xycoords='axes fraction', fontsize=15)
+    binrange = 0.01
 
-    axes[0].set_title('angle_TR',fontsize=16)
-    axes[1].set_title('angle_BL',fontsize=16)
-  #  axes.set_xticks(labelsize=16)
+    # define matplotlib figure
+    fig = plt.figure(figsize=(8,7))
+    ax = fig.add_subplot(1,1,1)
 
-    axes[0].hist(df['angle_TR'], bins=10, alpha=1, histtype="stepfilled",edgecolor='black')
+    # paint required area
+    #ax.axvspan(require[0], require[1], color='yellow', alpha=0.5)
+      
+    # fill data
+    bins = np.arange(np.nanmin(df[histname].to_list()),np.nanmax(df[histname].to_list()), binrange)
+    n = ax.hist(df[histname], bins=bins, alpha=1, histtype="stepfilled",edgecolor='black')
 
-    axes[1].hist(df['angle_BL'], bins=10, alpha=1, histtype="stepfilled",edgecolor='black')
+    # show text of required area
+    #ax.text(require[0]-2*binrange, np.amax(n[0]), f'{require[0]}',
+     #       color='#ff5d00',size=14)
+    #ax.text(require[1]-5*binrange, np.amax(n[0]), f'{require[1]}',
+     #       color='#ff5d00',size=14)
 
     # set hist style
-    axes[0].tick_params(labelsize=16)
-    axes[1].tick_params(labelsize=16)
+    plt.tick_params(labelsize=18)
+    ax.set_title(f'{AF} {name}_{arg}',fontsize=20)
+    ax.set_xlabel('mm',fontsize=18,loc='right') 
+    ax.set_ylabel(f'events/{binrange}mm',fontsize=18,loc='top')
 
-    plt.savefig(f'resultsHist/FlexFmark_angle_hist.jpg')  #save as jpeg
+    plt.savefig(f'resultsHist/validateSQ/{AF}_{histname}_hist.jpg')  #save as jpeg
 
     plt.show()
-
 
 class MainWindow(ttk.Frame):
     def __init__(self, root):
@@ -188,8 +140,37 @@ def calculateAngle(exdf, name1, name2, name3):
     radian= np.arccos(np.clip(costheta, -1.0, 1.0))
     angle = np.degrees(radian)
     return angle
+
+def badSN(df):
+    rows = ['Qty', 'min', 'max', 'mean', 'std', 'requirement min', 'requirement max']
+    summary = pd.DataFrame(index=rows)
+    ngSN = pd.DataFrame(columns=['serial_num'])
+    
+    names = ['range_T','range_B','range_L','range_R','angle_BL','angle_TR']
+    for name in names:
+        std = np.nanstd(df[name].to_list())    # get data value std deviation
+        mean = np.nanmean(df[name].to_list())  # get data value mean
+        minimum = np.nanmin(df[name].to_list())  # get data value min
+        maximum = np.nanmax(df[name].to_list())  # get data value max
+        quantity = df[name].count()
+        if 'angle' in name:
+            reqmin = 89.9
+            reqmax = 90.1
+        if 'range' in name:
+            reqmin = mean - 2*std
+            reqmax = mean + 2*std
+            
+        values = pd.DataFrame([quantity, minimum, maximum, mean, std, reqmin, reqmax],index=rows,columns=[name])
+        summary = pd.concat([summary, values],axis=1)
+    
+        filterd_min = df[df[name] < reqmin]
+        filterd_max = df[df[name] > reqmax]
+        ex = pd.concat([filterd_min[['serial_num', name]],
+                        filterd_max[['serial_num', name]]])
+        ngSN = pd.merge(ngSN, ex, on='serial_num',how='outer')
+    return summary, ngSN
  
-def valSquare(df):
+def valSquare(df, AF):
     listT,listB,listL,listR = [],[],[],[]
     listBL,listTR = [],[]
     listSN = []
@@ -199,12 +180,12 @@ def valSquare(df):
     for sn in snList:
         exdf = grouptag_ana.get_group((sn))
         listSN.append(sn)
-        listT.append(calculateDistance(exdf, 'FmarkTL','FmarkTR'))
-        listR.append(calculateDistance(exdf, 'FmarkTR','FmarkBR'))
-        listB.append(calculateDistance(exdf, 'FmarkBL','FmarkBR'))
-        listL.append(calculateDistance(exdf, 'FmarkTL','FmarkBL'))
-        listBL.append(calculateAngle(exdf, 'FmarkTL','FmarkBL','FmarkBR'))
-        listTR.append(calculateAngle(exdf, 'FmarkTL','FmarkTR','FmarkBR'))
+        listT.append(calculateDistance(exdf, f'{AF}TL',f'{AF}TR'))
+        listR.append(calculateDistance(exdf, f'{AF}TR',f'{AF}BR'))
+        listB.append(calculateDistance(exdf, f'{AF}BL',f'{AF}BR'))
+        listL.append(calculateDistance(exdf, f'{AF}TL',f'{AF}BL'))
+        listBL.append(calculateAngle(exdf, f'{AF}TL',f'{AF}BL',f'{AF}BR'))
+        listTR.append(calculateAngle(exdf, f'{AF}TL',f'{AF}TR',f'{AF}BR'))
     df = pd.DataFrame()
     df['serial_num']=listSN
     df['range_T']=listT
@@ -213,8 +194,13 @@ def valSquare(df):
     df['range_R']=listR
     df['angle_BL']=listBL
     df['angle_TR']=listTR
+
+    badsnDF = badSN(df)
     
-    df.to_csv('data/FmarkRangeAndAngle.csv')
+    badsnDF[0].to_csv(f'data/validateSQ/{AF}_RangeAndAngle_summary.csv')
+    badsnDF[1].to_csv(f'data/validateSQ/{AF}_RangeAndAngle_badSN.csv')
+    df.to_csv(f'data/validateSQ/{AF}_RangeAndAngle.csv')
+    
     return df
 
 def saveCanvas():
@@ -242,20 +228,58 @@ def createWindow(df):
         canvas = window.buildGui(extract_ana)
         #saveCanvas()
 
-    return window         
+    return window
 
+def run(df, args):
+    # calculate range and angle
+    # and save csv
+    if args.AF == 'F':
+        resultDF = valSquare(analysisData,'Fmark')
+        # make hist
+        if args.ranges:
+            hist(resultDF, 'range', args.ranges, 'Fmark')
+        elif args.angles:
+            hist(resultDF, 'angle', args.angles, 'Fmark')
+        else:
+            print('no command. -h or --help ')
+
+    if args.AF == 'A':
+        resultDF = valSquare(analysisData,'AsicFmark')
+        # make hist
+        if args.ranges:
+            hist(resultDF, 'range', args.ranges, 'AsicFmark')
+        elif args.angles:
+            hist(resultDF, 'angle', args.angles, 'AsicFmark')
+        else:
+            print('no command. -h or --help ')
+
+    # draw canvas
+    # but it can't save 
+    #window = createWindow(analysisData)
+    #window.root.mainloop()
+    
 if __name__ == '__main__':
+    t1 = time.time()  # get initial timestamp
+    
+    # make parser
+    parser = argparse.ArgumentParser()
+
+    # add argument
+    parser.add_argument('AF', help='Asic or Flex?')
+    parser.add_argument('-r','--ranges', help='range', choices=['T','B','L','R'])
+    parser.add_argument('-a', '--angles', help='angle', choices=['TR','BL'])
+    
+    args = parser.parse_args()  # analyze arguments
+        
     #open data as dataframe
     with open(f'data/MODULE_ScanData.pkl', 'rb') as fin:
         scanData = pickle.load(fin)
     with open(f'data/MODULE_AnalysisData.pkl', 'rb') as fin:
         analysisData = pickle.load(fin)
 
-    # calculate range and angle
-    # and save csv 
-    result = valSquare(analysisData)
-    hist4(result)
-    # draw canvas
-    # but it can't save 
-    #window = createWindow(analysisData)
-    #window.root.mainloop()
+    # main
+    run(analysisData, args)
+
+    t2 = time.time()  # get final timestamp
+    elapsed_time = t2-t1  # calculate run time
+    print(f'run time : {elapsed_time}')  
