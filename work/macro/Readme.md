@@ -24,7 +24,12 @@ how to use these macro
   Fmarkの距離と角度を計算してヒストグラムにする。結果はcsvで保存する。  
   + hist4()　…　4辺の長さのヒストグラムを表示＆保存  
   + hist2()　…　対角（TRとBL）の角度のヒストグラムを表示＆保存
-    
+
++ fmarkのmargin
++ zの分布
++ Fmarkの相対位置
+
+
 ## marginplot_2
 ## getFilelist
 ## STDofZ
