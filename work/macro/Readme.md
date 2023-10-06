@@ -53,6 +53,8 @@ scanのxyzのデータとanalysisのxyのデータから、写真の中心と検
 
 ただし、scanのz座標の偏差が、同じtagでまとめて計算した標準偏差×3より大きいときは、赤色で点をプロットする。
 （それ以外は青）
+z座標がおかしかった時、ImagePath、シリアルナンバー、z座標などのscan dataに格納されている情報なら簡単に返すことができる。
+ただし検出されたxy座標を返すのはいささか大変なので、要改善。
 
 また、写真の辺と中心を緑でプロットしている。
 
@@ -78,13 +80,9 @@ TR:右上の内角、BL:左下の内角
 ## getFilelist
 ## scanのz座標について検証するモジュール
 ### STDofZ
-+ -a --asic
-+ -f --flex
 + -e --extract
-+ --hist  
-Asic,FlexのFmarkについて、写真の中央と検出点をプロットする。  
-zの座標が大きく外れている（偏差が0.03より大きい）場合、検出点を赤色で表示し、ImagePathをprintする。
-
++ --hist
+  
 extractは、stdがthreshold（第二引数）より大きいtagを抽出してdataframeにする。
 
 histは、各tagのstdをヒストグラムにする。各tagのstdについて、csvで保存。
