@@ -30,6 +30,7 @@ def extractLargeZ(scanData,tag):
         if abs(rowi['scan_z']-mean) > 3*std:
             # print NG serial number
             print('NG SN ', rowi['image_path'])
+            #print(rowi['serial_number'],'z:',rowi['scan_z'])
             NGSN.append(rowi['serial_number'])
         i += 1
     return NGSN

@@ -134,7 +134,7 @@ def allFmark(scanData, anaData):
     print('scan z = ' , ex['scan_z'])
     print('image path = ' , ex['image_path'])
     # make hist
-    histMargin(margin_df)
+    #histMargin(margin_df)
 
 def run(scanData, anaData, args):
     if args.asic:
