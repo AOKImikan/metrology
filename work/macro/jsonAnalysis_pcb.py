@@ -10,8 +10,8 @@ from myModules import data_pcb
 if __name__ == '__main__':
     t1 = time.time()  # get initial timestamp
     resultsKeyList = [
-        ['X_DIMENSION', [39.5, 39.6], 0.005, 'mm'],
-        ['Y_DIMENSION', [40.2, 40.4], 0.005, 'mm'],
+        ['X_DIMENSION', [39.5, 39.7], 0.005, 'mm'],
+        ['Y_DIMENSION', [40.3, 40.5], 0.005, 'mm'],
         ['AVERAGE_THICKNESS_FECHIP_PICKUP_AREAS',[0.15, 0.25], 0.001, 'mm'],
         ['AVERAGE_THICKNESS_POWER_CONNECTOR', [1.521, 1.761], 0.002, 'mm'],
         ['HV_CAPACITOR_THICKNESS', [1.701, 2.111], 0.004, 'mm'],
@@ -38,8 +38,8 @@ if __name__ == '__main__':
     ngSNDF.to_pickle("analysisJson/pcb_json_ngSNs.pkl")
     ngSNDF.to_csv("analysisJson/pcb_json_ngSNs.csv")
     print('analysis data save as analysisJson/pcb_json')
-    #print(ngSNDF)
-
+    print(analyDF)
+    print(ngSNDF)
     t2 = time.time()  # get final timestamp
     elapsed_time = t2-t1  # calculate run time
     print(f'run time : {elapsed_time}')  

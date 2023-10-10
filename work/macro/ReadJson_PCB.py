@@ -98,9 +98,9 @@ def hist(dnames, key, require, binrange, unit):
 
 def run(dnames, args):
     if args.X:
-        hist(dnames, 'X_DIMENSION', [39.5, 39.6], 0.005, 'mm')
+        hist(dnames, 'X_DIMENSION', [39.5, 39.7], 0.005, 'mm')
     elif args.Y:
-        hist(dnames, 'Y_DIMENSION', [40.2, 40.4], 0.005, 'mm')
+        hist(dnames, 'Y_DIMENSION', [40.3, 40.5], 0.005, 'mm')
     elif args.thick:
         hist(dnames, 'AVERAGE_THICKNESS_FECHIP_PICKUP_AREAS',
              [0.2, 0.25], 0.001, 'mm')
@@ -120,6 +120,7 @@ if __name__ == '__main__':
     t1 = time.time()  # get initial timestamp
 
     # make parser
+
     parser = argparse.ArgumentParser()
 
     # add argument
