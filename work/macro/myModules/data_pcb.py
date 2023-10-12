@@ -10,7 +10,23 @@ def getFilelist(stage):
     files = glob.glob("/nfs/space3/aoki/Metrology/kekdata/Metrology/PCB/20UPGPQ*")
    
     specialSNs = {
-        '20UPGPQ2601115':'n'
+        '20UPGPQ2601132':'n',
+        '20UPGPQ2601158':'n',
+        '20UPGPQ2601154':'n',
+        '20UPGPQ2601167':'n',
+        '20UPGPQ2601013':'n',
+        '20UPGPQ2601027':'n',
+        '20UPGPQ2601032':'n',
+        '20UPGPQ2601168':'n',
+        '20UPGPQ2601169':'n',
+        '20UPGPQ2601171':'n',
+        '20UPGPQ2601176':'n',
+        '20UPGPQ2601177':'n',
+        '20UPGPQ2601178':'n',
+        '20UPGPQ2601179':'n',
+        '20UPGPQ2601180':'n',
+        '20UPGPQ2601181':'n',
+        '20UPGPQ2601101':'001'
     }
     for k,v in specialSNs.items():
         dnames.append(specialize(k,v,stage))

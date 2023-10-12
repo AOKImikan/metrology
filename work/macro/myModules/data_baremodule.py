@@ -12,11 +12,10 @@ def getFilelist():
     specialSNs = {
         '20UPGB42399001':'n',
         '20UPGB42399002':'n',
-        '20UPGB42399003':'n'
-     #   '20UPGB42305019':'n',
-      #  '20UPGB42302024':'n',
-       # '20UPGB42302005':'n'
-    }
+        '20UPGB42399003':'n',
+        '20UPGB42302021':'n',
+        '20UPGB42302022':'n'
+     }
     for k,v in specialSNs.items():
         dnames.append(specialize(k,v))
 

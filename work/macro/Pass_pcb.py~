@@ -56,7 +56,6 @@ def LoadData(dn):
 def hist(dnames, key, require, binrange, unit):
     dataDict = {}
     for dn in dnames:
-        print(dn)
         results = LoadData(dn)[0]
         sn = LoadData(dn)[1]
         if len(results)>0:
