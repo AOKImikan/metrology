@@ -9,16 +9,17 @@ import glob
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import data_baremodule
 
 # data.pickle -> ScanProcessor
 def LoadData(dn):
     appdata = None
+    sp = None
     if os.path.exists(dn):
         with open(f'{dn}/data.pickle', 'rb') as fin:
             appdata = pickle.load(fin)
             appdata = appdata.deserialize()
     if appdata:
-        #print(dir(appdata))
         sp = appdata.getScanProcessor('ITkPixV1xBareModule.Size')
     return sp
 
@@ -30,8 +31,14 @@ def analyDataCnvDataFrame(SN,qc,num,dn):
 
     # open pickle
     sp =LoadData(dn)
+    if sp:
+        pass
+    else:
+        return None
+    
     patternAnalysis = sp.analysisList[0]
     sizeAnalysis = sp.analysisList[1]  # sizeAnalysis is not use this module
+
     # repeat
     # pattern analysis result
     for k,v in patternAnalysis.outData.items():
@@ -73,8 +80,10 @@ def scanPointCnvDataframe(SN,qc,num,dn):
 
     # open pickle
     sp = LoadData(dn)
-    
-    #for k,v in sp.scanData.points.items():
+    if sp:
+        pass
+    else:
+        return None
 
     i = 1
     while i < len(sp.scanData.points):
@@ -159,16 +168,7 @@ def run(dnames):
 
 if __name__ == '__main__':
     t1 = time.time()
-    files = glob.glob("/nfs/space3/aoki/Metrology/kekdata/Metrology/BARE_MODULE/20UPGB4239900*")
-    dnames = []
-    for fn in files:
-        filepath = fn + '/BAREMODULERECEPTION'
-        if os.path.exists(filepath) :
-            scanNumList = glob.glob(filepath+'/*')
-            scanNumList.sort()
-            count = len(scanNumList)
-            dnames.append(scanNumList[count-1])
-    #args = sys.argv
+    dnames = data_baremodule.getFilelist()
     print(f'counts of module : {len(dnames)}')
     run(dnames)
     t2 = time.time()

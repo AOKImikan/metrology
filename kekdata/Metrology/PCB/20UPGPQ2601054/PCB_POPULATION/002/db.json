@@ -1,0 +1,23 @@
+{
+  "institution": "KEK",
+  "component": "20UPGPQ2601054",
+  "componentType": "PCB",
+  "stage": "PCB_POPULATION",
+  "testType": "METROLOGY",
+  "date": "2023-10-12T14:16:59.477+09:00",
+  "results": {
+    "X_DIMENSION": 39.559,
+    "Y_DIMENSION": 40.384,
+    "X-Y_DIMENSION_WITHIN_ENVELOP": true,
+    "AVERAGE_THICKNESS_FECHIP_PICKUP_AREAS": 0.21,
+    "STD_DEVIATION_THICKNESS_FECHIP_PICKUP_AREAS": 0.002,
+    "HV_CAPACITOR_THICKNESS": 1.941,
+    "HV_CAPACITOR_THICKNESS_WITHIN_ENVELOP": true,
+    "AVERAGE_THICKNESS_POWER_CONNECTOR": 1.522,
+    "DIAMETER_DOWEL_HOLE_A": 3.059,
+    "WIDTH_DOWEL_SLOT_B": 3.08
+  },
+  "passed": true,
+  "problems": false,
+  "runNumber": "1"
+}

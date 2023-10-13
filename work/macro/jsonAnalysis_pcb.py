@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import ReadJson_PCB
-from myModules import data_pcb
+import data_pcb
 
 # pcb db.json analysis 
 if __name__ == '__main__':

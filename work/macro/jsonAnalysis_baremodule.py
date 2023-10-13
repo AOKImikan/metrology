@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import ReadJson_BareModule
-from myModules import data_baremodule
+import data_baremodule
 
 # bare module db.json analysis 
 if __name__ == '__main__':

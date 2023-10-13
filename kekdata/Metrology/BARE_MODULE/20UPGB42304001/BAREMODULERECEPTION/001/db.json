@@ -1,0 +1,23 @@
+{
+  "institution": "KEK",
+  "component": "20UPGB42304001",
+  "componentType": "BARE_MODULE",
+  "stage": "BAREMODULERECEPTION",
+  "testType": "QUAD_BARE_MODULE_METROLOGY",
+  "date": "2023-09-10T14:37:24.041+09:00",
+  "results": {
+    "SENSOR_X": 39.501,
+    "SENSOR_Y": 41.096,
+    "FECHIPS_X": 42.203,
+    "FECHIPS_Y": 40.289,
+    "FECHIP_THICKNESS": 152.4,
+    "FECHIP_THICKNESS_STD_DEVIATION": 8.2,
+    "BAREMODULE_THICKNESS": 314.9,
+    "BAREMODULE_THICKNESS_STD_DEVIATION": 7.6,
+    "SENSOR_THICKNESS": 154.8,
+    "SENSOR_THICKNESS_STD_DEVIATION": 1.3
+  },
+  "passed": true,
+  "problems": false,
+  "runNumber": "1"
+}

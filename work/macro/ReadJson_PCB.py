@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import argparse
-from myModules import data_pcb
+import data_pcb
 
 # get key extract by values
 def getNGSN(dic, threshold):
@@ -56,7 +56,6 @@ def LoadData(dn):
 def hist(dnames, key, require, binrange, unit):
     dataDict = {}
     for dn in dnames:
-        print(dn)
         results = LoadData(dn)[0]
         sn = LoadData(dn)[1]
         if len(results)>0:
@@ -72,10 +71,14 @@ def hist(dnames, key, require, binrange, unit):
 
     # paint required area
     ax.axvspan(require[0], require[1], color='yellow', alpha=0.5)
-      
+
+    nonZeroValues = [value for value in dataDict.values() if value != 0]
     # fill thickness list
-    bins = np.arange(np.amin(list(dataDict.values())),
-                     np.amax(list(dataDict.values())), binrange)
+    bins = np.arange(np.nanmin(nonZeroValues),
+                      np.nanmax(nonZeroValues), binrange)
+   
+  #  bins = np.arange(np.nanmin(list(dataDict.values())),
+  #                   np.nanmax(list(dataDict.values())), binrange)
     n = ax.hist(dataDict.values(), bins=bins, alpha=1, histtype="stepfilled",edgecolor='black')
 
     # show text of required area

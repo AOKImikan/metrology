@@ -1,0 +1,37 @@
+{
+  "institution": "HR",
+  "component": "20UPGM22601078",
+  "componentType": "MODULE",
+  "stage": "MODULE/ASSEMBLY",
+  "testType": "QUAD_MODULE_METROLOGY",
+  "date": "2023-09-27T12:59:46.273+09:00",
+  "results": {
+    "PCB_BAREMODULE_POSITION_TOP_RIGHT": [
+      2.212,
+      0.73
+    ],
+    "PCB_BAREMODULE_POSITION_BOTTOM_LEFT": [
+      2.209,
+      0.845
+    ],
+    "ANGLE_PCB_BM": 0.0,
+    "AVERAGE_THICKNESS": [
+      0.5740283954050968,
+      0.5645365032451055,
+      0.5719937957491913,
+      0.5806259480229161
+    ],
+    "STD_DEVIATION_THICKNESS": [
+      0.002,
+      0.002,
+      0.002,
+      0.002
+    ],
+    "THICKNESS_VARIATION_PICKUP_AREA": 0.016,
+    "THICKNESS_INCLUDING_POWER_CONNECTOR": 1.909,
+    "HV_CAPACITOR_THICKNESS": 2.25
+  },
+  "passed": true,
+  "problems": false,
+  "runNumber": "1"
+}

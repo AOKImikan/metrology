@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import argparse
-from myModules import data_module
+import data_module
 
 # get key extract by values
 def getNGSN(dic, threshold):
@@ -46,10 +46,19 @@ def LoadData(dn):
     results = {}
     sn = 'serial number'
     if os.path.exists(dn):
-        with open(f'{dn}/db.json', 'rb') as fin:
-            appdata = json.load(fin)
-            results = appdata['results']
-            sn = appdata['component']
+        path1 = f'{dn}/db.json'
+        path2 = f'{dn}/db_v2.json'
+        if os.path.exists(path1):
+            with open(path1, 'rb') as fin:
+                appdata = json.load(fin)
+                results = appdata['results']
+                sn = appdata['component']
+        elif os.path.exists(path2):
+            with open(path2, 'rb') as fin:
+                appdata = json.load(fin)
+                results = appdata['results']
+                sn = appdata['component']
+
     return results, sn
 
 # make hist
@@ -117,7 +126,7 @@ def hist(dnames, key, require, binrange, unit, arg = 8):
     else:
         plt.savefig(f'resultsHist/module_assem_{key}.jpg')  #save as jpeg
         print(f'save as resultsHist/module_assem_{key}.jpg')
-    #plt.show()
+    plt.show()
 
     return ngSN
     

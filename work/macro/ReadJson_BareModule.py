@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import argparse
-from myModules import data_baremodule
+import data_baremodule
 
 # get key extract by values
 def stdNGSN(dic, threshold):

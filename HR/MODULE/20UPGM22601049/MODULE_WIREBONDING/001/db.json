@@ -1,0 +1,37 @@
+{
+  "institution": "HR",
+  "component": "20UPGM22601049",
+  "componentType": "MODULE",
+  "stage": "MODULE_WIREBONDING",
+  "testType": "QUAD_MODULE_METROLOGY",
+  "date": "2023-08-07T16:39:46.504Z",
+  "results": {
+    "PCB_BAREMODULE_POSITION_TOP_RIGHT": [
+      0.0,
+      0.0
+    ],
+    "PCB_BAREMODULE_POSITION_BOTTOM_LEFT": [
+      0.0,
+      0.0
+    ],
+    "ANGLE_PCB_BM": 0.0,
+    "AVERAGE_THICKNESS": [
+      0.4896493430932507,
+      0.7734867136504144,
+      0.5860461983771712,
+      0.5284943251413301
+    ],
+    "STD_DEVIATION_THICKNESS": [
+      0.002,
+      0.002,
+      0.002,
+      0.002
+    ],
+    "THICKNESS_VARIATION_PICKUP_AREA": 0.284,
+    "THICKNESS_INCLUDING_POWER_CONNECTOR": 1.939,
+    "HV_CAPACITOR_THICKNESS": 2.31
+  },
+  "passed": true,
+  "problems": false,
+  "runNumber": "1"
+}

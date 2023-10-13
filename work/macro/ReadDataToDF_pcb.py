@@ -8,7 +8,7 @@ import pmm
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from myModules import data_pcb
+import data_pcb
 
 #data.pickle -> ScanProcessor
 def LoadData(dn):
@@ -22,20 +22,24 @@ def LoadData(dn):
             sp = appdata.getScanProcessor('ITkPixV1xFlex.Size')
     return sp
 
-#analysis -> dataframe
+# analysis -> dataframe
 def analyDataCnvDataFrame(SN,qc,num,dn):
-    #define list dor dataframe
+    #d efine list dor dataframe
     snlist, qclist, numlist = [],[],[]
     xlist, ylist,tags = [],[],[]
     analyTags = []
     valuelist = []
-    #open pickle
+    
+    # open pickle
     sp =LoadData(dn)
     if sp:
-        patternAnalysis = sp.analysisList[0]
-        sizeAnalysis = sp.analysisList[1]
+        pass
     else:
         return None
+
+    patternAnalysis = sp.analysisList[0]
+    sizeAnalysis = sp.analysisList[1]
+
     ##repeat##
     # pattern analysis result
     for k,v in patternAnalysis.outData.items():
@@ -77,7 +81,7 @@ def analyDataCnvDataFrame(SN,qc,num,dn):
     
     return df
 
-#scanData -> dataframe
+# scanData -> dataframe
 def scanPointCnvDataframe(SN,qc,num,dn):
     # define list for dataframe
     snlist, qclist, numlist = [],[],[]
@@ -86,9 +90,11 @@ def scanPointCnvDataframe(SN,qc,num,dn):
     # open pickle
     sp = LoadData(dn)
     if sp:
-        i = 0
+        pass
     else:
         return None
+    
+    i = 0    
     while i < len(sp.scanData.points):
         # add data to list
         snlist.append(SN)    # serial number
@@ -101,7 +107,11 @@ def scanPointCnvDataframe(SN,qc,num,dn):
         scanList_x.append(point.get('x')) # x
         scanList_y.append(point.get('y')) # y
         scanList_z.append(point.get('z')) # z
-        scanList_tags.append(point.get('tags')[0])      # tag
+        if point.get('tags'):
+            scanList_tags.append(point.get('tags')[0])  # tag
+        else:
+            scanList_tags.append('')  # tag
+            
         scanList_imPath.append(point.get('imagePath'))  # image path
         i += 1  # repeat parameter
         
