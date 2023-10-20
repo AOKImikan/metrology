@@ -38,12 +38,14 @@ def analyDataCnvDataFrame(SN,qc,num,dn):
     
     patternAnalysis = sp.analysisList[0]
     sizeAnalysis = sp.analysisList[1]  # sizeAnalysis is not use this module
-
+    for k,v in sizeAnalysis.outData.items():
+        print(k)
     # repeat
     # pattern analysis result
     for k,v in patternAnalysis.outData.items():
         #print(f'{k} : {v}')
         # use "point" data
+        print(k)
         if('point'in k):
             # get tag (match for scan tag)
             key = k.split('_')
@@ -143,34 +145,39 @@ def run(dnames):
     analyDFs = pd.DataFrame()
 
     # repeat for each serial number
-    for dn in dnames:
-        #print(dn)
+    #for dn in dnames:
+    dn = dnames[8]
+    print(dn)
         # get serial number and qc stage
-        sn = extractSN(dn)
-        qcstage = extractQcStage(dn)
-        number = extractMetrologyNum(dn)
+    sn = extractSN(dn)
+    qcstage = extractQcStage(dn)
+    number = extractMetrologyNum(dn)
 
         # convert from pickle to dataframe
-        analydf = analyDataCnvDataFrame(sn,qcstage,number,dn)        
-        scandf = scanPointCnvDataframe(sn,qcstage,number,dn)
+    analydf = analyDataCnvDataFrame(sn,qcstage,number,dn)        
+    scandf = scanPointCnvDataframe(sn,qcstage,number,dn)
 
         # concat each serial numbers
-        analyDFs = pd.concat([analyDFs,analydf],ignore_index=True)
-        scanDFs = pd.concat([scanDFs,scandf],ignore_index=True)
+    analyDFs = pd.concat([analyDFs,analydf],ignore_index=True)
+    scanDFs = pd.concat([scanDFs,scandf],ignore_index=True)
 
     # save the created data
-    analyDFs.to_pickle("data/BAREMODULE_AnalysisData.pkl")
-    scanDFs.to_pickle("data/BAREMODULE_ScanData.pkl")
-    analyDFs.to_csv("data/test_BAREMODULE_AnalysisData.csv")
-    scanDFs.to_csv("data/test_BAREMODULE_ScanData.csv")
+    #analyDFs.to_pickle("data/BAREMODULE_AnalysisData.pkl")
+    #scanDFs.to_pickle("data/BAREMODULE_ScanData.pkl")
+    #analyDFs.to_csv("data/test_BAREMODULE_AnalysisData.csv")
+    #scanDFs.to_csv("data/test_BAREMODULE_ScanData.csv")
     print("save data file : data/BAREMODULE_AnalysisData")
     print("save data file : data/BAREMODULEscanData")
 
 if __name__ == '__main__':
     t1 = time.time()
+    
     dnames = data_baremodule.getFilelist()
+
     print(f'counts of module : {len(dnames)}')
+
     run(dnames)
+
     t2 = time.time()
     elapsed_time = t2-t1
     print(f'run time : {elapsed_time}')

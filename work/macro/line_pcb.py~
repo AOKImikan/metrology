@@ -39,7 +39,8 @@ def analyDataCnvDataFrame(SN,qc,num,dn):
 
     patternAnalysis = sp.analysisList[0]
     sizeAnalysis = sp.analysisList[1]
-
+    for k,v in sizeAnalysis.outData.items():
+        print(k)
     ##repeat##
     # pattern analysis result
     for k,v in patternAnalysis.outData.items():
@@ -155,25 +156,28 @@ def run(dnames):
     analyDFs = pd.DataFrame()
 
     #repeat for each serial number
-    for dn in dnames:
+    #for dn in dnames:
+    dn = dnames[30]
         # get serial number and qc stage
-        sn = extractSN(dn)
-        qcstage = extractQcStage(dn)
-        number = extractMetrologyNum(dn)
+    sn = extractSN(dn)
+    qcstage = extractQcStage(dn)
+    number = extractMetrologyNum(dn)
     
         # convert from pickle to dataframe
-        analydf = analyDataCnvDataFrame(sn,qcstage,number,dn)        
-        scandf = scanPointCnvDataframe(sn,qcstage,number,dn)
+    analydf = analyDataCnvDataFrame(sn,qcstage,number,dn)        
+    scandf = scanPointCnvDataframe(sn,qcstage,number,dn)
 
         # concat each serial numbers
-        analyDFs = pd.concat([analyDFs,analydf],ignore_index=True)
-        scanDFs = pd.concat([scanDFs,scandf],ignore_index=True)
+    analyDFs = pd.concat([analyDFs,analydf],ignore_index=True)
+    scanDFs = pd.concat([scanDFs,scandf],ignore_index=True)
     
+    print(analyDFs)
+    print(scanDFs)
     # save the created data
-    analyDFs.to_pickle("data/PCB_AnalysisData.pkl")
-    scanDFs.to_pickle("data/PCB_ScanData.pkl")
-    analyDFs.to_csv("data/PCB_AnalysisData.csv")
-    scanDFs.to_csv("data/PCB_ScanData.csv")
+    #analyDFs.to_pickle("data/PCB_AnalysisData.pkl")
+    #scanDFs.to_pickle("data/PCB_ScanData.pkl")
+    #analyDFs.to_csv("data/PCB_AnalysisData.csv")
+    #scanDFs.to_csv("data/PCB_ScanData.csv")
 
     print("save as data/PCB_AnalysisData")
 
