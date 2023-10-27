@@ -14,6 +14,7 @@ import logging
 
 import pmm
 import data_pcb
+import LinePointPlot
 from scipy import linalg
 from pmm.model import *
 
@@ -21,21 +22,11 @@ logger = logging.getLogger(__name__)
 
 def parseArgs():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-d', '--scanDir', dest='scanDir',
-                        type=str, default='.',
-                        help='Name of the directory with scan results')
-    parser.add_argument('-i', '--imageFiles', dest='imageFiles',
-                        type=str, default='',
-                        help='List of image files (CSV format)')
-    parser.add_argument('--shape', dest='shape',
-                        type=str, default='Circle',
-                        help='Shape to fit the edges')
-    parser.add_argument('-s', '--subRegion', dest='subRegion',
-                        type=str, default='',
-                        help='Sub-region to draw image patches')
-    parser.add_argument('-f', '--FlexNnumber', dest='FlexNumber',
-                        type=str, default='',
-                        help='FlexNumber')
+    parser.add_argument('sn', help='serialnumber 20UPGPQ-')
+    parser.add_argument('tag', help='tag : T, B, L, R')
+    #parser.add_argument('-f', '--FlexNnumber', dest='FlexNumber',
+    #                    type=str, default='',
+    #                    help='FlexNumber')
     return parser.parse_args()
 
 #data.pickle -> ScanProcessor
@@ -93,30 +84,49 @@ def fitLine0(points):
     #    print(p.position)
     #print(pars)
     line.setPars(pars)
-    return line
+    return line    
 
 def fitLine(points):
+    # fit line by all points
     line = fitLine0(points)
-    print(line)
+
     points2 = []
+    thr_dis = 0.05  # distance [mm]
+    thr_res = 0.005  # residual error
+    s = 0
+    print('initial')
     for ipoint in points:
         d = line.distance(ipoint)
         print(d,'mm')
-        if d < 0.05:
+        s += np.square(line.distance(ipoint))
+        if d < thr_dis:  # distance < threshold
             points2.append(ipoint)
-    print(points2)
+    if len(points2)<2:
+        print('try again points detection')
+        return line
+    print(s)
+    # fit line by exculuded points
     line2 = fitLine0(points2)
     
+    # calculate residual error sum of squares
+    
+    print('exclude')
     for ipoint in points2:
         d = line2.distance(ipoint)
+        s += np.square(line2.distance(ipoint))
         print(d,'mm')
 
-    print(line2)
-    return line2
+    print(s)
 
+    if s > thr_res:
+        print('try again points detection')
+        return line
+    else:
+        return line2
+                    
 def run(args):
     #dnames = data_pcb.getFilelist('PCB_POPULATION')
-    dns=['/nfs/space3/aoki/Metrology/kekdata/Metrology/PCB/20UPGPQ2601089/PCB_POPULATION/001']
+    dns=[f'/nfs/space3/aoki/Metrology/kekdata/Metrology/PCB/20UPGPQ260{args.sn}/PCB_POPULATION/001']  # test
     for dn in dns:
         sp = LoadData(dn)
 
@@ -129,14 +139,16 @@ def run(args):
             if v is None:
                 pass
     
-            elif 'FlexR' in k:
+            elif f'Flex{args.tag}' in k:
                 if '_point' in k:
                     points.append(v)
 
-        print(dn)
-        fitLine(points)
+        line = fitLine(points)
+        # show and save plot (line, points, filename)
+        LinePointPlot.drawplot(line, points,f'20UPGPQ260{args.sn}_Flex{args.tag}_after')
+        
 
 if __name__ == '__main__':
     args = parseArgs()
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
     run(args)
