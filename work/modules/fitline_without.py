@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 def parseArgs():
     parser = argparse.ArgumentParser()
-    parser.add_argument('sn', help='serialnumber 20UPGPQ-')
+    parser.add_argument('sn', help='serialnumber 20UPGPQ260-')
     parser.add_argument('tag', help='tag : T, B, L, R')
     #parser.add_argument('-f', '--FlexNnumber', dest='FlexNumber',
     #                    type=str, default='',
@@ -102,7 +102,7 @@ def fitLine(points):
         if d < thr_dis:  # distance < threshold
             points2.append(ipoint)
     if len(points2)<2:
-        print('try again points detection')
+        logger.warning('Try again points detection')
         return line
     print(s)
     # fit line by exculuded points
@@ -119,7 +119,7 @@ def fitLine(points):
     print(s)
 
     if s > thr_res:
-        print('try again points detection')
+        logger.warning('Try again points detection')
         return line
     else:
         return line2
@@ -140,13 +140,13 @@ def run(args):
                 pass
     
             elif f'Flex{args.tag}' in k:
-                if '_point' in k:
+                if '_point' in k:  # 'Flex*_*_point'
                     points.append(v)
 
         line = fitLine(points)
+        
         # show and save plot (line, points, filename)
         LinePointPlot.drawplot(line, points,f'20UPGPQ260{args.sn}_Flex{args.tag}_after')
-        
 
 if __name__ == '__main__':
     args = parseArgs()
