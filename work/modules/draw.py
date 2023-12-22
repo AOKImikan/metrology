@@ -127,6 +127,6 @@ if __name__ == '__main__':
         '/nfs/space3/tkohno/atlas/ITkPixel/Metrology/HR/MODULE/20UPGM22110427/MODULE_ASSEMBLY/001'
         ]
     dic = run(dnames)
-    #window = createWindow(dic)
-    #window.root.mainloop()
+    window = createWindow(dic)
+    window.root.mainloop()
     

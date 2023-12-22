@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import argparse
-import data_pcb
+import datapath
 
 # get key extract by values
 def getNGSN(dic, threshold):
@@ -53,7 +53,7 @@ def LoadData(dn):
     return results, sn
 
 # make hist
-def hist(dnames, key, require, binrange, unit):
+def hist(dnames, key, require, binrange, minmax=None, unit=''):
     dataDict = {}
     for dn in dnames:
         results = LoadData(dn)[0]
@@ -72,13 +72,17 @@ def hist(dnames, key, require, binrange, unit):
     # paint required area
     ax.axvspan(require[0], require[1], color='yellow', alpha=0.5)
 
-    nonZeroValues = [value for value in dataDict.values() if value != 0]
+    # set histgram range
+    if minmax:
+        bins = np.arange(minmax[0], minmax[1], binrange)
+    else:
+        nonZeroValues = [value for value in dataDict.values() if value != 0]
+        bins = np.arange(np.nanmin(nonZeroValues),
+                         np.nanmax(nonZeroValues), binrange)
+        #bins = np.arange(np.amin(list(dataDict.values())),
+        #                 np.amax(list(dataDict.values())), binrange)
+
     # fill thickness list
-    bins = np.arange(np.nanmin(nonZeroValues),
-                      np.nanmax(nonZeroValues), binrange)
-   
-  #  bins = np.arange(np.nanmin(list(dataDict.values())),
-  #                   np.nanmax(list(dataDict.values())), binrange)
     n = ax.hist(dataDict.values(), bins=bins, alpha=1, histtype="stepfilled",edgecolor='black')
 
     # show text of required area
@@ -141,7 +145,7 @@ if __name__ == '__main__':
     args = parser.parse_args()  # analyze arguments
     
     # assign read file path 
-    dnames = data_pcb.getFilelist('PCB_POPULATION')
+    dnames = datapath.getFilelistPCB('PCB_POPULATION')
     # PCB_POPULATION
     # PCB_RECEPTION
     # PCB_RECEPTION_MODULE_SITE

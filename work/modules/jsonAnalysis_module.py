@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import ReadJson_module
-import data_module
+import datapath
 
 # module db.json analysis 
 if __name__ == '__main__':
@@ -22,7 +22,7 @@ if __name__ == '__main__':
         ['HV_CAPACITOR_THICKNESS', [2.071, 2.481], 0.01, 'mm', 8]      
     ]
     # assign read file path
-    dnames = data_module.getFilelist()
+    dnames = datapath.getFilelistModule()
 
     analyDF = pd.DataFrame()
     ngSNDF = pd.DataFrame()

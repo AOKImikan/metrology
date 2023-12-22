@@ -1,0 +1,17 @@
+,tag,name,x,y
+0,AsicL,point,-21.19314,0.0
+1,AsicL,direction,-0.00066,1.0
+2,AsicR,point,21.00655,0.0
+3,AsicR,direction,-0.00014,1.0
+4,SensorT,point,0.0,21.32088
+5,SensorT,direction,1.0,0.00034
+6,SensorB,point,0.0,-19.78898
+7,SensorB,direction,1.0,0.00078
+8,PGTL,point,-20.35458,0.0
+9,PGTL,direction,-0.00574,0.99998
+10,PGTR,point,20.17595,0.0
+11,PGTR,direction,-0.00579,0.99998
+12,PGTT,point,0.0,21.0712
+13,PGTT,direction,0.99999,0.00466
+14,PGTB,point,0.0,-19.44659
+15,PGTB,direction,0.99999,0.00427

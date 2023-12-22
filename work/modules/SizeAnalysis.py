@@ -13,7 +13,7 @@ import pickle
 import logging
 
 import pmm
-import data_pcb
+import datapath
 import fitline_without
 from scipy import linalg
 from pmm.model import *
@@ -66,7 +66,7 @@ def LoadData(dn):
     return sp
 
 def run(args):
-    #dnames = data_pcb.getFilelist('PCB_POPULATION')
+    #dnames = datapath.getFilelistPCB('PCB_POPULATION')
     dns=[f'/nfs/space3/aoki/Metrology/kekdata/Metrology/PCB/20UPGPQ260{args.sn}/PCB_POPULATION/001']  # test
     for dn in dns:
         sp = LoadData(dn)

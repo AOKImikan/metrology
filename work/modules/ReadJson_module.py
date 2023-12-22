@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import argparse
-import data_module
+import datapath
 
 # get key extract by values
 def getNGSN(dic, threshold):
@@ -97,7 +97,7 @@ def hist(dnames, key, require, binrange, unit, arg = 8):
 
     # paint required area
     ax.axvspan(require[0], require[1], color='yellow', alpha=0.5)
-    
+    print(dataDict)
     # fill thickness list
     bins = np.arange(np.amin(list(dataDict.values())),
                      np.amax(list(dataDict.values())), binrange)
@@ -185,7 +185,7 @@ if __name__ == '__main__':
     args = parser.parse_args()  # analyze arguments
     
     # assign read file path 
-    dnames = data_module.getFilelist()
+    dnames = datapath.getFilelistModule()
            
     print(f'counts of module : {len(dnames)}')
 

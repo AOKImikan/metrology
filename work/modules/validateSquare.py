@@ -11,6 +11,8 @@ import re
 import time
 import argparse
 import matplotlib.pyplot as plt
+
+import makeImages
     
 def hist(df, name, arg, AF):
     # define histgram name
@@ -200,7 +202,7 @@ def valSquare(df, AF):
     badsnDF[0].to_csv(f'data/validateSQ/{AF}_RangeAndAngle_summary.csv')
     badsnDF[1].to_csv(f'data/validateSQ/{AF}_RangeAndAngle_badSN.csv')
     df.to_csv(f'data/validateSQ/{AF}_RangeAndAngle.csv')
-    
+    print(df)
     return df
 
 def saveCanvas():
@@ -234,22 +236,27 @@ def run(df, args):
     # calculate range and angle
     # and save csv
     if args.AF == 'F':
-        resultDF = valSquare(analysisData,'Fmark')
+        result = valSquare(analysisData,'Fmark')
         # make hist
         if args.ranges:
-            hist(resultDF, 'range', args.ranges, 'Fmark')
+            dataDict = result['range_T']
+            makeImages.hist(dataDict, require, binrange, minmax=None, unit='', filename = None)
+            #hist(result, 'range', args.ranges, 'Fmark')
         elif args.angles:
-            hist(resultDF, 'angle', args.angles, 'Fmark')
+            makeImages.hist(dataDict, require, binrange, minmax=None, unit='', filename = None)  
+            #hist(result, 'angle', args.angles, 'Fmark')
         else:
             print('no command. -h or --help ')
 
     if args.AF == 'A':
-        resultDF = valSquare(analysisData,'AsicFmark')
+        result = valSquare(analysisData,'AsicFmark')
         # make hist
         if args.ranges:
-            hist(resultDF, 'range', args.ranges, 'AsicFmark')
+            makeImages.hist(dataDict, require, binrange, minmax=None, unit='', filename = None)
+            #hist(result, 'range', args.ranges, 'AsicFmark')
         elif args.angles:
-            hist(resultDF, 'angle', args.angles, 'AsicFmark')
+            makeImages.hist(dataDict, require, binrange, minmax=None, unit='', filename = None)
+            #hist(result, 'angle', args.angles, 'AsicFmark')
         else:
             print('no command. -h or --help ')
 

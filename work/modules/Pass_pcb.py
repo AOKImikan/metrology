@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import argparse
-from myModules import data_pcb
+import datapath
 
 # get key extract by values
 def getNGSN(dic, threshold):
@@ -111,7 +111,7 @@ if __name__ == '__main__':
     t1 = time.time()  # get initial timestamp
     
     # assign read file path 
-    dnames = data_pcb.getFilelist('PCB_POPULATION')
+    dnames = datapath.getFilelistPCB('PCB_POPULATION')
     # PCB_POPULATION
     # PCB_RECEPTION
     # PCB_RECEPTION_MODULE_SITE

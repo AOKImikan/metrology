@@ -9,7 +9,7 @@ import glob
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import data_baremodule
+import datapath
 
 # data.pickle -> ScanProcessor
 def LoadData(dn):
@@ -172,7 +172,7 @@ def run(dnames):
 if __name__ == '__main__':
     t1 = time.time()
     
-    dnames = data_baremodule.getFilelist()
+    dnames = datapath.getFilelistBare()
 
     print(f'counts of module : {len(dnames)}')
 

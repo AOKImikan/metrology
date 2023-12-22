@@ -9,7 +9,7 @@ import pmm
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import data_pcb
+import datapath
 
 #data.pickle -> ScanProcessor
 def LoadData(dn):
@@ -135,7 +135,7 @@ if __name__ == '__main__':
     parser.add_argument('tag', help='tag : T, B, L, R')
     args = parser.parse_args()  # analyze arguments
 
-    dnames = data_pcb.getFilelist('PCB_POPULATION')
+    dnames = datapath.getFilelistPCB('PCB_POPULATION')
     
     run(dnames,args)
     print(f'counts of module : {len(dnames)}')

@@ -8,7 +8,7 @@ import pmm
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import data_pcb
+import datapath
 
 #data.pickle -> ScanProcessor
 def LoadData(dn):
@@ -22,13 +22,21 @@ def LoadData(dn):
             sp = appdata.getScanProcessor('ITkPixV1xFlex.Size')
     return sp
 
+def commonAppend(commonslist,tags,commons,tag):
+      commonslist[0].append(commons[0])    # serial number
+      commonslist[1].append(commons[1])    # qc stage
+      commonslist[2].append(commons[2])  # scan number
+      tags.append(tag)     # tag
+
 # analysis -> dataframe
 def analyDataCnvDataFrame(SN,qc,num,dn):
-    #d efine list dor dataframe
+    # define list dor dataframe
     snlist, qclist, numlist = [],[],[]
-    xlist, ylist,tags = [],[],[]
-    analyTags = []
     valuelist = []
+    analyTags = []
+    values, tags, vType = [],[],[]
+    commons = [SN, qc, num]
+    commonslist = [snlist, qclist, numlist]
     
     # open pickle
     sp =LoadData(dn)
@@ -43,6 +51,7 @@ def analyDataCnvDataFrame(SN,qc,num,dn):
     ##repeat##
     # pattern analysis result
     for k,v in patternAnalysis.outData.items():
+        #print(k,v)
         if v is None:
             valuelist.append(None)  # Fill NaN
             analyTags.append(None)  # Fill NaN  
@@ -60,15 +69,26 @@ def analyDataCnvDataFrame(SN,qc,num,dn):
             analyTags.append(k)
         else:
             continue
-        
         # get tag (match for scan tag)
         key = k.split('_')
         tag = key[0]
-        tags.append(tag)     # tag
-        snlist.append(SN)    # serial number
-        qclist.append(qc)    # qc stage
-        numlist.append(num)  # scan number
-                        
+        commonAppend(commonslist, tags, commons, tag)
+        #tags.append(tag)     # tag
+        #snlist.append(SN)    # serial number
+        #qclist.append(qc)    # qc stage
+        #numlist.append(num)  # scan number
+        
+    for k,v in sizeAnalysis.outData.items():
+        #print(k,v)
+        if 'line' in k:
+            commonAppend(commonslist, tags, commons, tag)
+            valuelist.append(v.p[0])
+            analyTags.append(k)
+        else:
+            commonAppend(commonslist, tags, commons, tag)
+            valuelist.append(v.get('value'))
+            analyTags.append(k)
+            
     # make dataframe with serial number
     df=pd.DataFrame({'serial_number':snlist})
 
@@ -78,7 +98,7 @@ def analyDataCnvDataFrame(SN,qc,num,dn):
     df['scan_tags']=tags
     df['analysis_tags']=analyTags
     df['analysis_value'] = valuelist
-    
+   
     return df
 
 # scanData -> dataframe
@@ -132,7 +152,7 @@ def scanPointCnvDataframe(SN,qc,num,dn):
 def extractSN(dn):
     words = dn.split('/')
     sn = words[8]
-    print('SN = ',sn)
+    #print('SN = ',sn)
     return sn
 
 #get QC stage from directory path
@@ -146,16 +166,17 @@ def extractQcStage(dn):
 def extractMetrologyNum(dn):
     words = dn.split('/')
     num = words[10]
-    print("Number=",num)
+    #print("Number=",num)
     return num
 
 def run(dnames):
     #define the aimed dataframe
     scanDFs = pd.DataFrame()
     analyDFs = pd.DataFrame()
-
+    i = 0
     #repeat for each serial number
     for dn in dnames:
+        i += 1
         # get serial number and qc stage
         sn = extractSN(dn)
         qcstage = extractQcStage(dn)
@@ -168,19 +189,19 @@ def run(dnames):
         # concat each serial numbers
         analyDFs = pd.concat([analyDFs,analydf],ignore_index=True)
         scanDFs = pd.concat([scanDFs,scandf],ignore_index=True)
-    
+          
     # save the created data
     analyDFs.to_pickle("data/PCB_AnalysisData.pkl")
     scanDFs.to_pickle("data/PCB_ScanData.pkl")
     analyDFs.to_csv("data/PCB_AnalysisData.csv")
     scanDFs.to_csv("data/PCB_ScanData.csv")
-
+    print(analyDFs)
     print("save as data/PCB_AnalysisData")
 
 if __name__ == '__main__':
     t1 = time.time()
 
-    dnames = data_pcb.getFilelist('PCB_POPULATION')
+    dnames = datapath.getFilelistPCB('PCB_POPULATION')
     
     run(dnames)
     print(f'counts of module : {len(dnames)}')

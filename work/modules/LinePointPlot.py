@@ -9,7 +9,7 @@ import pmm
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import data_pcb
+import datapath
 
 def drawplot(line, points, fileName='lineFit'):    
     # define matplotlib figure

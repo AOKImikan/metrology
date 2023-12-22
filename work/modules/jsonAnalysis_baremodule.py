@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import ReadJson_BareModule
-import data_baremodule
+import datapath
 
 # bare module db.json analysis 
 if __name__ == '__main__':
@@ -19,7 +19,7 @@ if __name__ == '__main__':
         ['SENSOR_THICKNESS',[137, 187], 1, 'um']
     ]
     # assign read file path
-    dnames = data_baremodule.getFilelist()
+    dnames = datapath.getFilelistBare()
 
     analyDF = pd.DataFrame()
     ngSNDF = pd.DataFrame()
