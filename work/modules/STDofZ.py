@@ -12,6 +12,23 @@ import argparse
 import matplotlib.pyplot as plt
 import FmarkMarginPlot
 
+def parseArg():
+    # make parser
+    parser = argparse.ArgumentParser()
+    # add argument
+    parser.add_argument('-e','--extract', help='extract', action='store_true')
+    parser.add_argument('-s', '--std', help='show all tags std of z histgram', action='store_true')
+    parser.add_argument('-t', '--tag', help='show z hist of that tag')
+
+    # tag list
+    # 'Jig' 'Pickup1' 'Pickup2' 'Pickup3' 'Pickup4' 'FmarkTR' 'FmarkBR'
+    # 'FmarkBL' 'FmarkTL' 'AsicFmarkTR' 'AsicFmarkBR' 'AsicFmarkBL'
+    # 'AsicFmarkTL' 'HVCapacitor' 'Connector' 'AsicR' 'SensorB' 'AsicL'
+    # 'SensorT' 'FlexL' 'FlexT' 'FlexR' 'FlexB'
+
+    args = parser.parse_args()  # analyze arguments
+    return args
+
 def extractMargin(scandata, analydata):
     serialnum=[]
     for k,v in analydata.items():
@@ -25,6 +42,11 @@ def extractMargin(scandata, analydata):
     
     FmarkMarginPlot.plotPoint(SN, pointName, scandata, analydata)
 
+def HistTag(scanData, tag):
+    # group scandata dataframe by tags
+    grouptag = scanData.groupby(['tags'])
+ 
+    
 #show all tags std hist
 def HistStd(scanData):
     # group scandata dataframe by tags
@@ -59,6 +81,7 @@ def extractStd(scanData, threshold):
     print(largeStd)  
         
 def run(scanData, anaData, args):
+    print(scanData['tags'].unique())
     #####extractMargin(scanData, anaData)
     if args.extract:
         # show tag and scan xyz if large std
@@ -71,13 +94,7 @@ def run(scanData, anaData, args):
 if __name__ == '__main__':
     t1 = time.time()  # get initial timestamp
 
-    # make parser
-    parser = argparse.ArgumentParser()
-    # add argument
-    parser.add_argument('-e','--extract', help='extract', action='store_true')
-    parser.add_argument('--hist', help='show all tags std of z histgram', action='store_true')
-
-    args = parser.parse_args()  # analyze arguments
+    args = parseArg()
     
     # assign read file path 
     with open(f'data/MODULE_ScanData.pkl', 'rb') as fin:

@@ -54,7 +54,7 @@ def getFmarkPoint(sn, tag):  # tag example:AsicFmarkTL, FmarkBR
         detectY = extractData.loc[xi+1]['values']
         point = [roundF(detectX,fmt), roundF(detectY,fmt)]
     logger.info(point)
-
+    
     return point
 
 def oppositeAngle(tan1, tan2):

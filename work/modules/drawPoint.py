@@ -65,6 +65,15 @@ class MainWindow(ttk.Frame):
             AsicFmarkBL = v['AsicFmarkBL_0_point']
             point = v['scanPoint']
 
+        i = 0
+        while i < len(dic[SN]['scanPoint']):
+            point = dic[SN]['scanPoint'][i]
+            #print(point['x'],'  ',point['y'],'  ',  point['z'])
+            px = point['x']
+            py = point['y']
+            self.drawSquare(canvas,i,x0,y0,px,py, 1.14, 0.76,"#9cffff")
+            i += 1
+
         self.drawLineX(canvas,x0,y0,AsicL,150,'#ff0000')
         self.drawLineX(canvas,x0,y0,AsicR,150,"red")
         self.drawLineX(canvas,x0,y0,FlexL,200,"blue")
@@ -82,14 +91,6 @@ class MainWindow(ttk.Frame):
         self.drawOval(canvas,x0,y0,AsicFmarkBR.position[0],AsicFmarkBR.position[1],5,"#ff0000")
         self.drawOval(canvas,x0,y0,AsicFmarkBL.position[0],AsicFmarkBL.position[1],5,"#ff0000")
         
-        i = 0
-        while i < len(dic[SN]['scanPoint']):
-            point = dic[SN]['scanPoint'][i]
-            #print(point['x'],'  ',point['y'],'  ',  point['z'])
-            px = point['x']
-            py = point['y']
-            self.drawSquare(canvas,i,x0,y0,px,py, 1.14, 0.76,"#9cffff")
-            i += 1
         print('point = ',len(dic[SN]['scanPoint']))
 
     def buildGuiPCB(self,dic):    

@@ -220,11 +220,11 @@ def run(args):
     if args.mark:
         # (dataDict, requirement, binrange, minmax, unit, filename=None)
         logger.info(f'{args.mark} dx')
-        makeImages.hist(dxDict, [2.112, 2.312], 0.005, [1.9,2.4], 'mm',
+        makeImages.hist(dxDict, [2.112, 2.312], 0.005, [2.0,2.5], 'mm',
                       f'flexBarePosition_{args.mark}_dx')
         makeImages.getBadSN(dxDict, 2.112, 2.312)
         logger.info(f'{args.mark} dy')
-        makeImages.hist(dyDict, [0.65, 0.85], 0.005, [0.6, 1.1], 'mm',
+        makeImages.hist(dyDict, [0.65, 0.85], 0.005, [0.5, 1.0], 'mm',
                       f'flexBarePosition_{args.mark}_dy')
         makeImages.getBadSN(dyDict, 0.65, 0.85)
       

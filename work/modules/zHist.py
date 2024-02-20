@@ -9,7 +9,18 @@ import pmm
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import argparse
+
+
+def parseArg():
+    parser = argparse.ArgumentParser()
+
+    # add argument
+    parser.add_argument('--tag', help='scan tag')
     
+    args = parser.parse_args()  # analyze arguments
+    return args
+
 def extractMargin(scandata, analydata):
     serialnum=[]
     for k,v in analydata.items():
@@ -83,7 +94,7 @@ def fmark(scanData, anaData, tag):
     #allZ = np.concatenate(scanData['z'])
     exScanData = scanData[scanData['tags'].str.contains('\AFmark')]
     bins = np.linspace(exScanData['scan_z'].min(),exScanData['scan_z'].max(), 100)
-    #group scandata dataframe by tags
+    # group scandata dataframe by tags
     grouptag = scanData.groupby(['tags'])
     #pattern = re.compile('{}Fmark\w'.format(tag))
     pattern = re.compile('\AFmark\w')
@@ -109,16 +120,15 @@ def fmark(scanData, anaData, tag):
 
     
 if __name__ == '__main__':
-    with open(f'data/ScanData.pkl', 'rb') as fin:
+        
+    with open(f'data/MODULE_ScanData.pkl', 'rb') as fin:
         scanData = pickle.load(fin)
-    with open(f'data/AnalysisData.pkl', 'rb') as fin:
+    with open(f'data/MODULE_AnalysisData.pkl', 'rb') as fin:
         analysisData = pickle.load(fin)
 
     #get arguments
-    arg = sys.argv
-    #Differentiate the cases by arguments
-    if len(arg)==2:
-        fmark(scanData, analysisData, arg[1])
-    if len(arg)==1:
-        general(scanData, analysisData)
+    args = parseArg()
+    
+    fmark(scanData, analysisData, args.tag)
+    #general(scanData, analysisData)
         

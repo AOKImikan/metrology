@@ -8,6 +8,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import argparse
 import datapath
+import glob
 
 # get key extract by values
 def getNGSN(dic, threshold):
@@ -19,6 +20,7 @@ def getNGSN(dic, threshold):
         return None
 
 def requiredNGSN(key, dic, reqmin, reqmax):
+    #print(key,dic)
     std = np.std(list(dic.values()))  # get data value std deviation
     mean = np.mean(list(dic.values()))  # get data value mean
     minimum = np.amin(list(dic.values()))  # get data value min
@@ -42,12 +44,19 @@ def requiredNGSN(key, dic, reqmin, reqmax):
 
 # db.json -> results and somponent serial number
 def LoadData(dn):
+    #print(dn)
     appdata = None
     results = {}
     sn = 'serial number'
     if os.path.exists(dn):
-        path1 = f'{dn}/db.json'
-        path2 = f'{dn}/db_v2.json'
+        path0 = f'{dn}/db_fmarkUpdate.json'
+        path1 = f'{dn}/db_v2.json'
+        path2 = f'{dn}/db.json'
+        # if os.path.exists(path0):
+        #     with open(path0, 'rb') as fin:
+        #         appdata = json.load(fin)
+        #         results = appdata['results']
+        #         sn = appdata['component']
         if os.path.exists(path1):
             with open(path1, 'rb') as fin:
                 appdata = json.load(fin)
@@ -88,7 +97,7 @@ def hist(dnames, key, require, binrange, unit, arg = 8):
 
     # data summary
     # save as dataframe
-    
+    print(len(dataDict))
     ngSN = requiredNGSN(key, dataDict, require[0], require[1])
     
     # define matplotlib figure
@@ -97,11 +106,16 @@ def hist(dnames, key, require, binrange, unit, arg = 8):
 
     # paint required area
     ax.axvspan(require[0], require[1], color='yellow', alpha=0.5)
-    print(dataDict)
+
+    # exclude 0
+    ex0data = [v for v in dataDict.values() if v !=0]
+    bins = np.arange(np.amin(ex0data), np.amax(ex0data), binrange)
+    n = ax.hist(ex0data, bins=bins, alpha=1, histtype="stepfilled",edgecolor='black')
+    
     # fill thickness list
-    bins = np.arange(np.amin(list(dataDict.values())),
-                     np.amax(list(dataDict.values())), binrange)
-    n = ax.hist(dataDict.values(), bins=bins, alpha=1, histtype="stepfilled",edgecolor='black')
+    # bins = np.arange(np.amin(list(dataDict.values())),
+    #                  np.amax(list(dataDict.values())), binrange)
+    # n = ax.hist(dataDict.values(), bins=bins, alpha=1, histtype="stepfilled",edgecolor='black')
 
     # show text of required area
     ax.text(require[0]-2*binrange, np.amax(n[0]),f'{require[0]}',
@@ -151,11 +165,13 @@ def run(dnames, args):
              [0.52,0.62], 0.002, 'mm', int(args.aveThick))
     elif args.stdThick:
         hist(dnames, 'STD_DEVIATION_THICKNESS',
-             [], 0.01, '', int(args.stdThick))
+             [0, 0.01], 0.001, '', int(args.stdThick))
     elif args.angle:
-        hist(dnames, 'ANGLE_PCB_BM', -0.01, 0.01)
+        hist(dnames, 'ANGLE_PCB_BM',
+             [0.0, 0.01], 0.001,  '')
     elif args.pickup:
-        hist(dnames, 'THICKNESS_VARIATION_PICKUP_AREA')
+        hist(dnames, 'THICKNESS_VARIATION_PICKUP_AREA',
+             [0, 0.02], 0.002, '')
     elif args.power:
         hist(dnames, 'THICKNESS_INCLUDING_POWER_CONNECTOR',
              [1.891, 2.131], 0.01, 'mm')
@@ -164,6 +180,20 @@ def run(dnames, args):
              [2.071, 2.481], 0.01, 'mm')
     else:
         print('Error: No such Command. type option -h or --help')  
+
+def getFilelist():
+    dnames = []  # define path list
+    #files = glob.glob("/nfs/space3/tkohno/atlas/ITkPixel/Metrology/HR/MODULE/20UPGM*")
+    files = glob.glob("/nfs/space3/aoki/Metrology/HR/FmarkUpdate_MODULE/20UPGM*")
+    for fn in files:
+        sn = fn.split('/')[7]        
+        filepath = fn + '/MODULE_ASSEMBLY'  # stage
+        if os.path.exists(filepath):  
+            scanNumList = glob.glob(filepath+'/*')
+            scanNumList.sort()
+            count = len(scanNumList)
+            dnames.append(scanNumList[count-1])
+    return dnames
     
 if __name__ == '__main__':
     t1 = time.time()  # get initial timestamp
@@ -186,6 +216,7 @@ if __name__ == '__main__':
     
     # assign read file path 
     dnames = datapath.getFilelistModule()
+    #dnames = getFilelist()
            
     print(f'counts of module : {len(dnames)}')
 

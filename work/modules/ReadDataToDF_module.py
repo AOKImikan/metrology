@@ -173,7 +173,7 @@ def scanPointCnvDataframe(SN,qc,num,dn):
 # get serial number from directory path
 def extractSN(dn):
     words = dn.split('/')
-    #print('SN = ',words[7])
+    print('SN = ',words[7])
     return words[7]
 
 # get QC stage from directory path
@@ -187,6 +187,7 @@ def extractQcStage(dn):
 def extractMetrologyNum(dn):
     words = dn.split('/')
     num = words[9]
+    print(num)
     return num
 
 def run(dnames):

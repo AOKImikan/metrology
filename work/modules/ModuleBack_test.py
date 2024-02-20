@@ -253,9 +253,10 @@ def CnvDF(dnames):
     print("save as data/MODULEBACK_****Data")
 #
 def correctHeight(points, refPlane):
+    fmt = '5.4f'
     points2 = []
     for p in points:
-        z = refPlane.distance(p)
+        z = roundF(refPlane.distance(p),fmt)
         points2.append(Point([p[0], p[1], z]) )
     return points2
 
@@ -274,16 +275,20 @@ def scatter3D(points, marker_size=50):
     ax = fig.add_subplot(projection='3d')
     num = 10
     #generated_colors = generateColors(num)
-    f=0.8
+    f=0.7
     for p in points:
         x = p.position[0]
         y = p.position[1]
         z = p.position[2]
         if z > 1.0:
-            print(x, ',', y, ',', z)
+            print(x, y, z)
             continue
+        if z < 0.6:
+            print(x, y, z)
+            continue
+        print(x, y, z)
         ax.scatter(x,y,z, s=marker_size, color='#FF7700',alpha=f)
-        #f += 0.01
+        f += 0.01
     #
     ax.set_xlabel(f'x [mm]',fontsize=18)
     ax.set_ylabel(f'y [mm]',fontsize=18) 
@@ -427,17 +432,16 @@ def plot(points, filename='PGT_Z',minmax=None):
     colors = ['#FF0000','#FF7000','#FFcc00','#0000ff','#0070ff',
               '#00bb00','#00bbbb','#FF5ead','#00ff00','#00c0c0','#c000c0']
     sortedPoints = sorted(points, key=lambda p:p.position[1])
-    for p in sortedPoints:
-        print(p.position[1])
     currentY = None
     for p in sortedPoints:
         x,y,z = p.position
+        print(x, y, z)
         if z > 1.0:
-            print(x,y,z)
+            print('large Z!!',x,y,z)
             continue
         if y != currentY :
             i += 1
-            print(i)
+            #print(i)
             Xvalues[i].append(x)
             Zvalues[i].append(z)
             ax.scatter(x, z, label=f'y = {y}',color=colors[i])            
@@ -533,7 +537,7 @@ def lineInfo(patternAnalysis,sn):
     df['name'] = namelist
     df['x'] = xlist
     df['y'] = ylist
-    print(df)
+    #print(df)
     df.to_csv(f'data/lineanalysisData_{sn}.csv')
     
 def analysis(dn):
@@ -541,7 +545,8 @@ def analysis(dn):
     sn = extractSN(dn)
     sp = LoadData(dn)
     if sp is None:
-        return 
+        print('None Data')
+        return
     scanData = sp.scanData
     if sp:
         patternAnalysis = sp.analysisList[0]
@@ -551,8 +556,8 @@ def analysis(dn):
     #print(f'angle L PGT, Asic : ',angle(outData,'PGTL','AsicL', 'v'))
     #print(f'angle R PGT, Asic : ',angle(outData,'PGTR','AsicR', 'v'))
     #print(f'angle T PGT, Sensor : ',angle(outData,'PGTT','SensorT', 'h'))
-    #print(f'angle B PGT, Sensor : ',angle(outData,'PGTB','SensorB', 'h'))        
-    
+    #print(f'angle B PGT, Sensor : ',angle(outData,'PGTB','SensorB', 'h'))
+    #print(scanData.allTags())
     PGTPoints = scanData.pointsWithTag('PGT')
     PGTedge1 = scanData.pointsWithTag('PGTL')
     PGTedge2 = scanData.pointsWithTag('PGTR')
@@ -561,6 +566,7 @@ def analysis(dn):
     AsicPointsL = scanData.pointsWithTag('AsicL')
     AsicPointsR = scanData.pointsWithTag('AsicR')
     AsicPoints = AsicPointsL + AsicPointsR
+    #print(AsicPoints)
     AsicPlane = fitPlane(AsicPoints)
     PGTPoints = correctHeight(PGTPoints, AsicPlane[0])
     PGTedge1 = correctHeight(PGTedge1, AsicPlane[0])
@@ -579,12 +585,12 @@ def analysis(dn):
         ps.append(p)
     for p in PGTedge4:
         ps.append(p)
-
+    
     #lineInfo(patternAnalysis,sn)
-    #scatter3D(ps)
+    scatter3D(ps)
     #plot2D(PGTPoints, 'x', 'correctZ_plot_x')
     #plot2D(PGTPoints, 'y', 'correctZ_plot_y')
-    plot(ps, f'PGT_z_sortY_{sn}')# [0.680, 0.725])
+    #plot(ps, f'PGT_z_sortY_{sn}')# [0.680, 0.725])
     #contour3D(PGTPoints,10)
     #bar3D(PGTPoints, 0.8)
 
