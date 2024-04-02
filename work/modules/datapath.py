@@ -27,6 +27,7 @@ def getFilelistModule():
         '20UPGM22601076':'002',  # re analyze
         '20UPGM22601083':'001',  # 002,003 None data
         '20UPGM22601095':'001',  # 002,003,004 : cell back data
+        '20UPGM22601125':'001',  # 002 Fmark is 0.0
         '20UPGM22601131':'001',  # 002 Fmark is 0.0
         '20UPGM22601137':'001',  # 002,003 None data
         '20UPGM22601138':'001',  # 002,004,005 None data, 003 BL is 0.0
@@ -83,11 +84,19 @@ def getFilelistPCB(stage):
    
     specialSNs = {
         '20UPGPQ2601155':'001',
+        '20UPGPQ2601159':'001',
         '20UPGPQ2601195':'n',
+        '20UPGPQ2601105':'n',
         '20UPGPQ2601132':'n',
         '20UPGPQ2601101':'001',
-        '20UPGPQ2601158':'002',  # v1.1
-        '20UPGPQ2601095':'003',  # 004 is not available        
+        '20UPGPQ2601108':'005',
+        '20UPGPQ2601158':'n',  # v1.1 002 is available
+        '20UPGPQ2601095':'003',  # 004 is not available
+        '20UPGPQ2601162':'n',  # different virsion?
+        '20UPGPQ2601071':'n',  # different virsion?
+        '20UPGPQ2601106':'n',  # different virsion?
+        '20UPGPQ2601041':'n',  # different virsion?
+        '20UPGPQ2601089':'n',  # different virsion?
     }
     for k,v in specialSNs.items():
         path = '/nfs/space3/aoki/Metrology/kekdata/Metrology/PCB/'+k+'/'+ stage +'/'+v

@@ -15,18 +15,18 @@ if __name__ == '__main__':
         ['PCB_BAREMODULE_POSITION_TOP_RIGHT', [0.65, 0.85],0.004, 'mm', 1],
         ['PCB_BAREMODULE_POSITION_BOTTOM_LEFT', [2.112, 2.312], 0.004, 'mm', 0],
         ['PCB_BAREMODULE_POSITION_BOTTOM_LEFT', [0.65, 0.85], 0.004, 'mm', 1],
-        # ['AVERAGE_THICKNESS', [0.52,0.62], 0.002, 'mm', 0],
-        # ['AVERAGE_THICKNESS', [0.52,0.62], 0.002, 'mm', 1],
-        # ['AVERAGE_THICKNESS', [0.52,0.62], 0.002, 'mm', 2],
-        # ['AVERAGE_THICKNESS', [0.52,0.62], 0.002, 'mm', 3],
-        # ['STD_DEVIATION_THICKNESS', [0, 0.01], 0.001, '', 0],
-        # ['STD_DEVIATION_THICKNESS', [0, 0.01], 0.001, '', 1],
-        # ['STD_DEVIATION_THICKNESS', [0, 0.01], 0.001, '', 2],
-        # ['STD_DEVIATION_THICKNESS', [0, 0.01], 0.001, '', 3],
-        # #['ANGLE_PCB_BM', [0.0, 0.01], 0.001, '', 8],  # angle all 0 ?
-        # ['THICKNESS_VARIATION_PICKUP_AREA', [0, 0.05], 0.002, '', 8],
-        # ['THICKNESS_INCLUDING_POWER_CONNECTOR', [1.891, 2.131], 0.01, 'mm', 8],
-        # ['HV_CAPACITOR_THICKNESS', [2.071, 2.481], 0.01, 'mm', 8]      
+        ['AVERAGE_THICKNESS', [0.52,0.62], 0.002, 'mm', 0],
+        ['AVERAGE_THICKNESS', [0.52,0.62], 0.002, 'mm', 1],
+        ['AVERAGE_THICKNESS', [0.52,0.62], 0.002, 'mm', 2],
+        ['AVERAGE_THICKNESS', [0.52,0.62], 0.002, 'mm', 3],
+        ['STD_DEVIATION_THICKNESS', [0, 0.01], 0.001, '', 0],
+        ['STD_DEVIATION_THICKNESS', [0, 0.01], 0.001, '', 1],
+        ['STD_DEVIATION_THICKNESS', [0, 0.01], 0.001, '', 2],
+        ['STD_DEVIATION_THICKNESS', [0, 0.01], 0.001, '', 3],
+        ['ANGLE_PCB_BM', [0.0, 0.01], 0.001, '', 8],  # angle all 0 ?
+        ['THICKNESS_VARIATION_PICKUP_AREA', [0, 0.05], 0.002, '', 8],
+        ['THICKNESS_INCLUDING_POWER_CONNECTOR', [1.891, 2.131], 0.01, 'mm', 8],
+        ['HV_CAPACITOR_THICKNESS', [2.071, 2.481], 0.01, 'mm', 8]      
     ]
     # assign read file path
     dnames = datapath.getFilelistModule()

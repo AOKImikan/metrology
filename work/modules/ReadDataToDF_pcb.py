@@ -202,7 +202,7 @@ if __name__ == '__main__':
     t1 = time.time()
 
     dnames = datapath.getFilelistPCB('PCB_POPULATION')
-    
+    print(f'counts of module : {len(dnames)}')
     run(dnames)
     print(f'counts of module : {len(dnames)}')
     

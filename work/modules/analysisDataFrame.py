@@ -48,10 +48,6 @@ def extractMetrologyNum(dn):
     #print("Number=",num)
     return num
 
-def indexDF(data):
-    
-    return df
-
 def testDict(module):
     if module == "Flex":
         kind_of_module = ["Flex"]
@@ -61,38 +57,65 @@ def testDict(module):
              "Size":{
                  "FlexL":{
                      "points":["0","1", "2", "3"],
-                     "line":["point", "direction","d"]
+                     "line":["point", "direction"]
                  },
                  "FlexR":{
                      "points":["0","1", "2", "3"],
-                     "line":["point", "direction","d"]
+                     "line":["point", "direction"]
                  },
                  "FlexT":{
                      "points":["0","1", "2", "3"],
-                     "line":["point", "direction","d"]
+                     "line":["point", "direction"]
                  },
                  "FlexB":{
                      "points":["0","1", "2", "3"],
-                     "line":["point", "direction","d"]
+                     "line":["point", "direction"]
                  },
                  "HoleTL":{
                      "point":["center"],
-                     "hole":["r","std"]
+                     "hole":["r","x","y"]
                      },
                  "SlotBR":{
                      "point":["center"],
-                     "hole":["r","l"]
+                     "hole":["r", "x", "y",  "l", "alpha"],
                  }
              },
+             # "Height":{
+             #     "Jig":{
+             #         "plane":["point","direction"]},
+             #     "pickupPoint":{
+             #         "points":["p1","p2","p3","p4"]},
+             #     "Connector":{
+             #         "points":["p1","p2","p3","p4"]},
+             #     "Capacitor":{
+             #         "points":["p1","p2","p3","p4"]}
+             # },
              "Height":{
                  "Jig":{
                      "plane":["point","direction"]},
-                 "pickupPoint":{
-                     "points":["p1","p2","p3","p4"]},
-                 "Connector":{
-                     "points":["p1","p2","p3","p4"]},
-                 "Capacitor":{
-                     "points":["p1","p2","p3","p4"]}
+                 "PickupZ":{
+                     "averaged":''},
+                 "ConnectorZ":{
+                     "averaged":''},
+                 "HVCapacitorZ":{
+                     "averaged":''}
+             },
+             "results":{
+                 "Flex":{
+                     "X":"dimension",
+                     "Y":"dimension",
+                     "L":"Line",
+                     "R":"Line",
+                     "T":"Line",
+                     "B":"Line",},
+                 "HoleTL":{
+                     "circle":"diameter"},
+                 "SlotBR":{
+                     "bigCircle":"width"}
+                 # "Asic":{
+                 #     "X":"dimension"},
+                 # "Sensor":{
+                 #     "Y":"dimension"}
              }
         }   
     elif module == "Module":
@@ -122,90 +145,162 @@ def indexDF(module):
         data, columns=['Level{}'.format(i+1) for i in range(len(data[0]))])
     return df
 
-def getData(k1,k2,k3,v1,v2,v3,PAsize):
+def getData(k1,k2,k3,v1,v2,v3,SP):
     if k3 == 'points': #[[x1, y1],[x2,y2],...]
-        print('points',v3)
         i = 0
+        pList = []
         while i < len(v3):
             name = k2+f'_{i}_point'
-            print(i, PAsize.outData[name].position)
+            p = SP.outData[name].position
+            p[0] = round(p[0],3)
+            p[1] = round(p[1],3)
+            pList.append(p)
             i += 1
+        return pList
+            
     elif k3 == 'point': # [x,y]
-        print('point',v3)
+        #print('point',v3)
         namex = k2 + '_x'
         namey = k2 + '_y'
-        x = PAsize.outData[namex].get('value')
-        y = PAsize.outData[namey].get('value')
+        x = round(SP.outData[namex].get('value'),3)
+        y = round(SP.outData[namey].get('value'),3)
         center = [x,y]
-        print(center)
+        return center
+    
     elif k3 == 'line': #[point,direction,d]
-        print('line', v3)
         name = k2 + '_line'
-        print('dirrection',PAsize.outData[name].direction())
-        # print('par',PAsize.outData[name].p[1])
-        # print('par',PAsize.outData[name].p[2])
-        print('center',PAsize.outData[name].center())
+        line = SP.outData[name]
+        p = line.center()
+        p[0] = round(p[0],3)
+        p[1] = round(p[1],3)
+        direction = line.direction()
+        direction[0] = round(direction[0] , 3)
+        direction[1] = round(direction[1] , 3)
+        # print(dir(line))
+        # print(type(line))
+        return p, direction
+    
     elif k3 == 'hole': #['r','l', 'std']
-        print('hole',v3)
+        #print('hole',v3)
         i = 0
+        returnlist = []
         while i < len(v3):
-            if v3[i] == 'r':
-                name = k2 + '_r'
-                print(name, PAsize.outData[name].get('value'))
-            if v3[i] == 'l':
-                name = k2 + '_l'
-                print(name, PAsize.outData[name].get('value'))
+            name = k2 + '_'+ v3[i]
+            #print(name, SP.outData[name].get('value'))
+            r = SP.outData[name].get('value')
+            returnlist.append(round(r,3))
+            # if v3[i] == 'r':
+            #     name = k2 + '_r'
+            #     print(name, SP.outData[name].get('value'))
+            #     r = SP.outData[name].get('value')
+            # elif v3[i] == 'l':
+            #     name = k2 + '_l'
+            #     print(name, SP.outData[name].get('value'))
+            #     l = SP.outData[name].get('value')
             i += 1
+        return returnlist
+    
     elif k3 == 'plane': #
-        print('plane', v3)
+        #print('plane', v3)
+        return 'point', 'direction'
+
+    elif k3 == 'averaged':
+        name = k2
+        value = round(SP.outData[name].get('value'),3) 
+        return value
+
+    elif k3 == 'X' or k3 == 'Y':
+        name = k2 + k3
+        dimension = SP.outData[name]
+        dimension = dimension.get('value')
+        return round(dimension, 3)
+    
+    elif k3 == 'L' or k3 == 'R' or k3 == 'T' or k3 == 'B':
+        name = k2 + k3 +'_line'
+        line = SP.outData[name]
+        return line
+    elif k3 =='circle':
+        name1 = k2 +'_diameter'
+        r = SP.outData[name1].get('value')
+        return round(r,3)
+    elif k3 =='bigCircle':
+        name1 = k2 +'_width'
+        r = SP.outData[name1].get('value')
+        return round(r,3)
+    
     else:
-        print('more',k3)
+        #print('more',k3)
+        return 0
     
 def pickupAnalysisDataFlex(dn):
     qcstage = extractQcStage(dn)
     number = extractMetrologyNum(dn)
-        
+    DATA = [qcstage, number]
     # open pickle
     spSize =LoadData(dn,'ITkPixV1xFlex.Size')
     spHeight =LoadData(dn,'ITkPixV1xFlex.Height')
     if spSize:
-        PAsize = spSize.analysisList[0]
-        SAsize = spSize.analysisList[1]
+        PatternAnalysis = spSize.analysisList[0]
+        SizeAnalysis = spSize.analysisList[1]
     else:
         return None
     if spHeight:
-        PAhigh = spHeight.analysisList[0]
-        
+        HeightAnalysis = spHeight.analysisList[0]
+     #    for k,v in HeightAnalysis.outData.items():
+    #         print(k,v)
+    # print('patternanalysis')
+    # for k,v in PatternAnalysis.outData.items():
+    #     print(k,v)
+    # print('sizeanalysis')
+    # for k,v in SizeAnalysis.outData.items():
+    #     print(k,v)
+  
     data = ['POPULATION','001',
-            1,2,3,4,'p','d','d',
-            1,2,3,4,'p','d','d',
-            1,2,3,4,'p','d','d',
-            1,2,3,4,'p','d','d',
+            1,2,3,4,[3,3,3],[1,0],'d',
+            1,2,3,4,[3,3,3],[0,1],'d',
+            1,2,3,4,['x','y','z'],[1,0,0],'d',
+            1,2,3,4,['x','y','z'],['x','y','z'],'d',
             10,3,0.1,
-            10,3,0.1,
+            10,3,0.1,1,
             'p','d',
-            1,2,3,4,
-            1,2,3,4,
-            1,2,3,4
+            1,2,3,4,5,6,7
     ]
     d = testDict('Flex')
     for k1, v1 in d.items():
         for k2, v2 in v1.items():
             for k3, v3 in v2.items():
                 if k1 == 'Size':
-                    print(k1,k2,k3)
-                    getData(k1,k2,k3,v1,v2,v3,PAsize)
-                #elif k1 == 'Height':
+                    #print(k1,k2,k3)
+                    Data = getData(k1,k2,k3,v1,v2,v3,PatternAnalysis)
+                    #print(Data)
+                    if k3 =='points' or k3 =='line' or k3 == 'plane' or k3 =='hole':
+                        for pp in Data:
+                            DATA.append(pp)
+                    else:
+                        DATA.append(Data)
+                elif k1 == 'Height':
+                    #print(k1,k2,k3)
+                    Data = getData(k1,k2,k3,v1,v2,v3,HeightAnalysis)
+                    #print(Data)
+                    if k3 =='points' or k3 =='hole' or k3 == 'plane':
+                        for pp in Data:
+                            DATA.append(pp)
+                    else:
+                        DATA.append(Data)
+                elif k1 == 'results':
+                    #print(k1,k2,k3)
+                    Data = getData(k1,k2,k3,v1,v2,v3,SizeAnalysis)
+                    DATA.append(Data)
+                else:
+                    pass
+                
+                
     # pattern analysis result
-    for k,v in PAsize.outData.items():
-        print(k,v)
-    for k,v in PAhigh.inData.items():
-        print(k,v)
         # elif '_alpha' in k:
         #     print(v.get('value'))
                
-    # for k,v in sizeAnalysis.outData.items():
-    #     #print(k,v)
+#    for k,v in sizeAnalysis.outData.items():
+        #print(k,v)
     #     if 'line' in k:
     #         commonAppend(commonslist, tags, commons, tag)
     #         valuelist.append(v.p[0])
@@ -225,32 +320,43 @@ def pickupAnalysisDataFlex(dn):
     # df['analysis_tags']=analyTags
     # df['analysis_value'] = valuelist
    
-    return data
+    return DATA
 
 def run(dnames):
     # define the dataframe
     df_index = indexDF("Flex")
     mindex = pd.MultiIndex.from_frame(df_index)
-    df = pd.DataFrame(index=mindex)
-
+    dfs = pd.DataFrame(index=mindex)
+    # datalists = []
+    # snlist = []
+    dflist = []
     i = 0
+    
     #repeat for each serial number
     for dn in dnames:
+        df = pd.DataFrame(index=mindex)
+        number = extractMetrologyNum(dn)
+        if number == 'n':
+            continue
         i += 1
+        sn = extractSN(dn)
+        print(sn)
         # convert from pickle to dataframe
         datalist = pickupAnalysisDataFlex(dn)        
-        sn = extractSN(dn)
 
+        #datalists.append(datalist)
+        #snlist.append(sn)
         df[sn] =datalist
-        print(df)
-        # concat each serial numbers
-        #analyDFs = pd.concat([analyDFs,analydf],ignore_index=True)
-        if i > 0:
-            return
-   
+        dflist.append(df)
+        
+    #
+    dfs = pd.concat(dflist,axis=1)
+    print(dfs)
+    # for sn, datalist in zip(snlist, datalists):
+    #     df[sn]=datalist
+    # print(df)
     # save the created data
-    #analyDFs.to_pickle("data/PCB_AnalysisData.pkl")
-    #analyDFs.to_csv("data/PCB_AnalysisData.csv")
+    dfs.to_pickle("PCB_analysisDataFrame.pickle")
   
 if __name__ == '__main__':
     t1 = time.time()

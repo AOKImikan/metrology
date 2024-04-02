@@ -100,7 +100,8 @@ def fmark(scanData, anaData, tag):
     pattern = re.compile('\AFmark\w')
     listlist = []
     namelist = []
-    for name in scanData['tags'].unique():
+    for name in scanData['tags'].unique()
+    :
         if pattern.search(name):
             #extract by specified tag
             extractData = grouptag.get_group(name)

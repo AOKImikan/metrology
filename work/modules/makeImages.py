@@ -2,7 +2,7 @@
 import os
 import json
 import time
-import pmm
+#import pmm
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -10,30 +10,45 @@ import argparse
 import logging
 logger = logging.getLogger(__name__)
 
-def getBadSN(dic, reqmin, reqmax):
+def getBadSN(dataDict, dataList, require):
     summary = {}
-    summary['std'] = np.std(list(dic.values()))  # get data value std deviation
-    summary['mean'] = np.mean(list(dic.values()))  # get data value mean
-    summary['min'] = np.amin(list(dic.values()))  # get data value min
-    summary['max'] = np.amax(list(dic.values()))  # get data value max
-    summary['quantity'] = len(dic)
-    summary['req_min'] = reqmin
-    summary['req_max'] = reqmax
+    summary['std'] = np.std(dataList)    # get data value std deviation
+    summary['mean'] = np.mean(dataList)  # get data value mean
+    summary['min'] = np.amin(dataList)   # get data value min
+    summary['max'] = np.amax(dataList)   # get data value max
+    summary['quantity'] = len(dataList)
+    summary['req_min'] = require[0]
+    summary['req_max'] = require[1]
     
     ngnumber = 0
-    ngDict = {}
-    for k,v in dic.items():
-        if v < reqmin or v > reqmax:
-            ngDict[k] = v
-            ngnumber += 1
-            
-    summary['bad_ratio'] = ngnumber/summary['quantity']
+    df_badSN = pd.DataFrame(columns=['serial_number','data'])
+    sns = []
+    datas = []
+        
+    for k,v in dataDict.items():
+        if isinstance(v, list):
+            for val in v:
+                if val < require[0] or val > require[1]:
+                    sns.append(k)
+                    datas.append(val)
+                    ngnumber += 1
+        else:
+            if v < require[0] or v > require[1]:
+                datas.append(v)
+                sns.append(k)
+                ngnumber += 1
+                
+    df_badSN['serial_number'] = sns
+    df_badSN['data'] = datas
+  
+    summary['bad_ratio'] = ngnumber/summary['quantity']*100
     summaryDF = pd.DataFrame.from_dict(summary,orient = "index")
-    df_badSN = pd.DataFrame(ngDict.keys())
-    df_badSN = pd.concat([df_badSN, pd.DataFrame(ngDict.values())],axis=1)
+    summaryDF = summaryDF.round(3)
+    print('badSN')
     print(df_badSN)
+    print('summary')
     print(summaryDF)
-    return df_badSN, summary
+    return df_badSN, summaryDF
 
 # make hist
 def hist(dataDict, require, binrange, minmax=None, unit='', filename = None):
@@ -50,20 +65,20 @@ def hist(dataDict, require, binrange, minmax=None, unit='', filename = None):
     else:
         ax.axvspan(require[0], require[1], color='yellow', alpha=0.5)
 
-    # set histgram range
-    if minmax:
-        bins = np.arange(minmax[0], minmax[1], binrange)
-    else:
-        bins = np.arange(np.amin(list(dataDict.values())),
-                         np.amax(list(dataDict.values())), binrange)
-
     # fill data
     datas = []
     for i in dataDict.values():
         if isinstance(i, list):
-            pass
+            for val in i:
+                datas.append(val)
         else:
             datas.append(i)
+
+    # set histgram range
+    if minmax:
+        bins = np.arange(minmax[0], minmax[1], binrange)
+    else:
+        bins = np.arange(np.amin(datas), np.amax(datas), binrange)
      
     n = ax.hist(datas, bins=bins, alpha=1, histtype="stepfilled",edgecolor='black')
 
@@ -84,6 +99,7 @@ def hist(dataDict, require, binrange, minmax=None, unit='', filename = None):
 
     # show hist
     if filename:
+        #plt.savefig(f'zhist/{filename}.jpg')  #save as jpeg
         plt.savefig(f'resultsHist/{filename}.jpg')  #save as jpeg
         logger.info(f'save as resultsHist/{filename}.jpg')
     else:
@@ -112,7 +128,7 @@ def graph(dataDict, require, minmax=None, unit='', filename = None):
     # set axis limit
     if minmax:
         ax.set_xlim(minmax[0], minmax[1])
-        ax.set_ylim(require[0]-0.01, require[1]+0.06)
+        #ax.set_ylim(require[0]-0.4, require[1]+0.3)
 
     # add data
     for k,v in dataDict.items():
@@ -122,7 +138,9 @@ def graph(dataDict, require, minmax=None, unit='', filename = None):
         #    bad = require[0]
         #    ax.scatter(number, bad, c='#ff0000',marker='x',zorder=2)
         if isinstance(v, list):
-            ax.scatter(number, v[0], c='#ff0000',marker='x',zorder=2)
+            for val in v:
+                #ax.scatter(number, v[0], c='#ff0000',marker='x',zorder=2)
+                ax.scatter(number, val, c='#0055e0',marker='o',zorder=2)
         else:
             ax.scatter(number, v, c='#0055e0',marker='o',zorder=2)
 
@@ -132,12 +150,14 @@ def graph(dataDict, require, minmax=None, unit='', filename = None):
         ax.set_title(f'{filename}',fontsize=20)
     else:
         pass
-    ax.set_xlabel(f'serialNumber(20UPGPQ260-)',fontsize=18, loc='right') 
+    
+    ax.set_xlabel(f'serialNumber(last 4 digits)',fontsize=18, loc='right') 
     ax.set_ylabel(f'{unit}',fontsize=18, loc='top')
    
     # show hist
     if filename:
-        plt.savefig(f'resultsHist/{filename}.jpg')  #save as jpeg
+        plt.savefig(f'zhist/{filename}.jpg')  #save as jpeg
+        #plt.savefig(f'resultsHist/{filename}.jpg')  #save as jpeg
         logger.info(f'save as resultsHist/{filename}.jpg')
     else:
         pass

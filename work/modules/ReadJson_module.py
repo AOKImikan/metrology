@@ -10,6 +10,24 @@ import argparse
 import datapath
 import glob
 
+def parseArg():
+    # make parser
+    parser = argparse.ArgumentParser()
+    # add argument
+    parser.add_argument('--TR', help='PCB_BAREMODULE_POSITION_TOP_RIGHT',choices=['0','1','10'])
+    parser.add_argument('--BL', help='PCB_BAREMODULE_POSITION_BOTTOM_LEFT',choices=['0','1','10'])
+    parser.add_argument('--aveThick', help='AVERAGE_THICKNESS',choices=['0','1','2','3','10'])
+    parser.add_argument('--stdThick', help='STD_DEVIATION_THICKNESS',choices=['0','1','2','3','10'])
+    parser.add_argument('--angle', help='ANGLE_PCB_BM', action='store_true')
+    parser.add_argument('--pickup', help='THICKNESS_VARIATION_PICKUP_AREA',
+                        action='store_true')
+    parser.add_argument('--power', help='THICKNESS_INCLUDING_POWER_CONNECTOR',
+                        action='store_true')
+    parser.add_argument('--HVcapa', help='HV_CAPACITOR_THICKNESS',
+                        action='store_true')
+    args = parser.parse_args()  # analyze arguments
+    return args
+    
 # get key extract by values
 def getNGSN(dic, threshold):
     mean = np.mean(list(dic.values()))
@@ -49,24 +67,25 @@ def LoadData(dn):
     results = {}
     sn = 'serial number'
     if os.path.exists(dn):
-        path0 = f'{dn}/db_fmarkUpdate.json'
+        path0 = f'{dn}/db_fillAngle.json'
+        #path0 = f'{dn}/db_fmarkUpdate.json'
         path1 = f'{dn}/db_v2.json'
         path2 = f'{dn}/db.json'
-        # if os.path.exists(path0):
-        #     with open(path0, 'rb') as fin:
+        if os.path.exists(path0):
+            with open(path0, 'rb') as fin:
+                appdata = json.load(fin)
+                results = appdata['results']
+                sn = appdata['component']
+        # if os.path.exists(path1):
+        #     with open(path1, 'rb') as fin:
         #         appdata = json.load(fin)
         #         results = appdata['results']
         #         sn = appdata['component']
-        if os.path.exists(path1):
-            with open(path1, 'rb') as fin:
-                appdata = json.load(fin)
-                results = appdata['results']
-                sn = appdata['component']
-        elif os.path.exists(path2):
-            with open(path2, 'rb') as fin:
-                appdata = json.load(fin)
-                results = appdata['results']
-                sn = appdata['component']
+        # elif os.path.exists(path2):
+        #     with open(path2, 'rb') as fin:
+        #         appdata = json.load(fin)
+        #         results = appdata['results']
+        #         sn = appdata['component']
 
     return results, sn
 
@@ -92,6 +111,7 @@ def hist(dnames, key, require, binrange, unit, arg = 8):
         for dn in dnames:
             results = LoadData(dn)[0]
             sn = LoadData(dn)[1]
+            print(sn)
             if len(results)>0:
                 dataDict[sn]=results[key]
 
@@ -99,7 +119,7 @@ def hist(dnames, key, require, binrange, unit, arg = 8):
     # save as dataframe
     print(len(dataDict))
     ngSN = requiredNGSN(key, dataDict, require[0], require[1])
-    
+        
     # define matplotlib figure
     fig = plt.figure(figsize=(8,7))
     ax = fig.add_subplot(1,1,1)
@@ -145,7 +165,6 @@ def hist(dnames, key, require, binrange, unit, arg = 8):
     return ngSN
     
 def run(dnames, args):
-    
     if args.TR:
         if args.TR == '0':
             hist(dnames, 'PCB_BAREMODULE_POSITION_TOP_RIGHT',
@@ -168,7 +187,7 @@ def run(dnames, args):
              [0, 0.01], 0.001, '', int(args.stdThick))
     elif args.angle:
         hist(dnames, 'ANGLE_PCB_BM',
-             [0.0, 0.01], 0.001,  '')
+             [0.0, 0.3], 0.004,  'degree')
     elif args.pickup:
         hist(dnames, 'THICKNESS_VARIATION_PICKUP_AREA',
              [0, 0.02], 0.002, '')
@@ -198,25 +217,11 @@ def getFilelist():
 if __name__ == '__main__':
     t1 = time.time()  # get initial timestamp
 
-    # make parser
-    parser = argparse.ArgumentParser()
-    # add argument
-    parser.add_argument('--TR', help='PCB_BAREMODULE_POSITION_TOP_RIGHT',choices=['0','1','10'])
-    parser.add_argument('--BL', help='PCB_BAREMODULE_POSITION_BOTTOM_LEFT',choices=['0','1','10'])
-    parser.add_argument('--aveThick', help='AVERAGE_THICKNESS',choices=['0','1','2','3','10'])
-    parser.add_argument('--stdThick', help='STD_DEVIATION_THICKNESS',choices=['0','1','2','3','10'])
-    parser.add_argument('--angle', help='ANGLE_PCB_BM', action='store_true')
-    parser.add_argument('--pickup', help='THICKNESS_VARIATION_PICKUP_AREA',
-                        action='store_true')
-    parser.add_argument('--power', help='THICKNESS_INCLUDING_POWER_CONNECTOR',
-                        action='store_true')
-    parser.add_argument('--HVcapa', help='HV_CAPACITOR_THICKNESS',
-                        action='store_true')
-    args = parser.parse_args()  # analyze arguments
+    args = parseArg()
     
     # assign read file path 
-    dnames = datapath.getFilelistModule()
-    #dnames = getFilelist()
+    #dnames = datapath.getFilelistModule()
+    dnames = getFilelist()
            
     print(f'counts of module : {len(dnames)}')
 

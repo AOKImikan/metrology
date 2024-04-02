@@ -164,6 +164,8 @@ def run(dnames):
     #save the created data
     analyDFs.to_pickle("data/BAREMODULE_AnalysisData.pkl")
     scanDFs.to_pickle("data/BAREMODULE_ScanData.pkl")
+    # analyDFs.to_csv("data/test_BAREMODULE_AnalysisData.csv")
+    # scanDFs.to_csv("data/test_BAREMODULE_ScanData.csv")
     print("save data file : data/BAREMODULE_AnalysisData")
     print("save data file : data/BAREMODULEscanData")
 
